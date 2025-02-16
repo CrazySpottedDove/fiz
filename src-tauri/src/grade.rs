@@ -1,0 +1,212 @@
+use crate::account::ACCOUNT;
+use crate::session::SESSION;
+use crate::session::{Session, MAX_RETRIES};
+use crate::utils::{Load, Store, CONFIG_DIR};
+use anyhow::Result;
+use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+use std::collections::HashMap;
+use std::sync::Mutex;
+use tauri::{AppHandle, Emitter};
+const GRADE_URL: &str = "http://appservice.zju.edu.cn/zju-smartcampus/zdydjw/api/kkqk_cxXscjxx";
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Grade {
+    pub name: String,
+    pub grade: String,
+    pub credit: String,
+    pub gpa: f64,
+    pub xq: String,
+    pub xn: String,
+}
+
+impl Grade {
+    pub fn new(
+        name: String,
+        grade: String,
+        credit: String,
+        gpa: f64,
+        xq: String,
+        xn: String,
+    ) -> Self {
+        Self {
+            name,
+            grade,
+            credit,
+            gpa,
+            xq,
+            xn,
+        }
+    }
+    pub fn group_by_xq_and_xn(grades: Vec<Grade>) -> HashMap<(String, String), Vec<Grade>> {
+        let mut grouped_grades: HashMap<(String, String), Vec<Grade>> = HashMap::new();
+        for grade in grades {
+            let xq_group = match grade.xq.as_str() {
+                "春" | "夏" | "春夏" => "春夏",
+                "秋" | "冬" | "秋冬" | "短" => "秋冬",
+                _ => "未知",
+            };
+            let key = (xq_group.to_string(), grade.xn.clone());
+            grouped_grades
+                .entry(key)
+                .or_insert_with(Vec::new)
+                .push(grade);
+        }
+        grouped_grades
+    }
+    pub fn analize(grades: Vec<Grade>) -> (f64, f64) {
+        let mut total_credit = 0.0;
+        let mut total_gpa = 0.0;
+        for grade in grades {
+            let credit = grade.credit.parse::<f64>().unwrap();
+            let gpa = grade.gpa;
+            total_credit += credit;
+            total_gpa += credit * gpa;
+        }
+        let gpa = total_gpa / total_credit;
+
+        (gpa, total_credit)
+    }
+    pub fn analize_by_xq_and_xn(grades: Vec<Grade>) -> Vec<Analysis> {
+        let mut analysis = Vec::new();
+        let mut total_credit = 0.0;
+        let mut total_gpa = 0.0;
+        let grouped_grades = Grade::group_by_xq_and_xn(grades);
+        for (key, grades) in grouped_grades {
+            for grade in &grades{
+                let credit = grade.credit.parse::<f64>().unwrap();
+                let gpa = grade.gpa;
+                total_credit += credit;
+                total_gpa += credit * gpa;
+            }
+            let (gpa, credit) = Grade::analize(grades);
+            analysis.push(Analysis {
+                xn: key.1,
+                xq: key.0,
+                gpa,
+                credit,
+            });
+        }
+        analysis.push(Analysis {
+            xn: "全学年".to_string(),
+            xq: "全学期".to_string(),
+            gpa: total_gpa / total_credit,
+            credit: total_credit,
+        });
+        analysis
+    }
+}
+lazy_static! {
+    pub static ref GRADES: Mutex<Vec<Grade>> = Mutex::new(Vec::new());
+}
+impl Load for Vec<Grade> {
+    fn load() -> Self {
+        let grades_dir = CONFIG_DIR.join("grades.json");
+        if grades_dir.exists() {
+            let Ok(reader) = std::fs::File::open(grades_dir) else {
+                return Self::new();
+            };
+            let Ok(grades) = serde_json::from_reader(reader) else {
+                return Self::new();
+            };
+            grades
+        } else {
+            Self::new()
+        }
+    }
+}
+
+impl Store for Vec<Grade> {
+    fn store(&self) -> Result<(), String> {
+        let grades_dir = CONFIG_DIR.join("grades.json");
+        let grades_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
+        std::fs::write(grades_dir, grades_str).map_err(|e| e.to_string())?;
+        Ok(())
+    }
+}
+impl Session {
+    pub async fn get_grades(&self) -> Result<()> {
+        let form = json!({
+            "xh": ACCOUNT.lock().unwrap().as_ref().unwrap().stuid,
+        });
+        let mut grades = Vec::new();
+        for retry in 1..=MAX_RETRIES {
+            let res = self.client.post(GRADE_URL).form(&form).send().await?;
+            let json = res.json::<Value>().await?;
+            match json["data"]["list"].as_array() {
+                Some(grades_json) => {
+                    for grade_json in grades_json {
+                        let grade = grade_json["cj"].as_str().unwrap().to_string();
+                        if grade == "弃修" {
+                            continue;
+                        }
+                        let name = grade_json["kcmc"].as_str().unwrap().to_string();
+                        let credit = grade_json["xf"].as_str().unwrap().to_string();
+                        let gpa = grade_json["jd"].as_f64().unwrap();
+                        let xq = grade_json["xq"].as_str().unwrap().to_string();
+                        let xn = grade_json["xn"].as_str().unwrap().to_string();
+                        grades.push(Grade::new(name, grade, credit, gpa, xq, xn));
+                    }
+                    break;
+                }
+                None => {
+                    if retry == MAX_RETRIES {
+                        return Err(anyhow::anyhow!("获取成绩失败"));
+                    }
+                }
+            }
+        }
+        *GRADES.lock().unwrap() = grades;
+        Ok(())
+    }
+}
+#[derive(Serialize, Deserialize)]
+pub struct Analysis {
+    pub xn: String,
+    pub xq: String,
+    pub gpa: f64,
+    pub credit: f64,
+}
+impl Load for Vec<Analysis> {
+    fn load() -> Self {
+        let analysis_dir = CONFIG_DIR.join("analysis.json");
+        if analysis_dir.exists() {
+            let Ok(reader) = std::fs::File::open(analysis_dir) else {
+                return Self::new();
+            };
+            let Ok(analysis) = serde_json::from_reader(reader) else {
+                return Self::new();
+            };
+            analysis
+        } else {
+            Self::new()
+        }
+    }
+}
+impl Store for Vec<Analysis> {
+    fn store(&self) -> Result<(), String> {
+        let analysis_dir = CONFIG_DIR.join("analysis.json");
+        let analysis_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
+        std::fs::write(analysis_dir, analysis_str).map_err(|e| e.to_string())?;
+        Ok(())
+    }
+}
+lazy_static! {
+    pub static ref ANALYSIS: Mutex<Vec<Analysis>> = Mutex::new(Vec::<Analysis>::load());
+}
+#[tauri::command]
+pub fn init_grades_and_analysis(app: AppHandle) -> Result<(), String> {
+    let grades = &*GRADES.lock().unwrap();
+    let analysis = &*ANALYSIS.lock().unwrap();
+    app.emit("grades-and-analysis-inited", (grades, analysis))
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn get_grades_and_analysis() -> Result<(Vec<Grade>, Vec<Analysis>), String> {
+    SESSION.get_grades().await.map_err(|e| e.to_string())?;
+    let grades = GRADES.lock().unwrap().clone();
+    let analysis = Grade::analize_by_xq_and_xn(grades.clone());
+    Ok((grades, analysis))
+}

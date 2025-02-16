@@ -1,0 +1,18 @@
+[
+    {
+        "href":"/todo",
+        "text":"待办事项"
+    },
+    {
+        "href":"/courseware",
+        "text":"课件"
+    },
+    {
+        "href":"/grade",
+        "text":"成绩"
+    },
+    {
+        "href":"/login",
+        "text":"登出"
+    }
+]
