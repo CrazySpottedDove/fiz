@@ -11,15 +11,25 @@ listen("courses-inited", (event) => {
     courseStore.courses = event.payload;
 });
 listen("grades-and-analysis-inited", (event) => {
-    gradeStore.grades = event.payload.grades;
-    gradeStore.analysis = event.payload.analysis;
+    [gradeStore.grades, gradeStore.analysis] = event.payload;
 });
 listen("login-success", async (event) => {
     try {
-        courseStore.courses = await invoke("get_courses");
-        [gradeStore.grades, gradeStore.analysis] = await invoke("get_grades_and_analysis");
+        const courses = await invoke("get_courses");
+        courseStore.courses = courses;
+    } catch (e) {
+        window.alert(`获取课程失败：${e}`);
+        // 不覆盖 courseStore.courses，保留原有数据
     }
-    catch (e) { window.alert(`获取课程失败：${e}`); }
+
+    try {
+        const [grades, analysis] = await invoke("get_grades_and_analysis");
+        gradeStore.grades = grades;
+        gradeStore.analysis = analysis;
+    } catch (e) {
+        window.alert(`获取成绩信息失败：${e}`);
+        // 不覆盖 gradeStore，保留原有数据
+    }
 });
 </script>
 

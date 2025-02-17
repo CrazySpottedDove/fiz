@@ -97,7 +97,7 @@ impl Grade {
     }
 }
 lazy_static! {
-    pub static ref GRADES: Mutex<Vec<Grade>> = Mutex::new(Vec::new());
+    pub static ref GRADES: Mutex<Vec<Grade>> = Mutex::new(Vec::<Grade>::load());
 }
 impl Load for Vec<Grade> {
     fn load() -> Self {
