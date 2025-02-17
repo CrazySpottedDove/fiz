@@ -7,14 +7,11 @@
             </button>
         </div>
         <ul class="grid grid-cols-2 gap-4">
-            <!-- 总是显示激活课程 -->
-            <CourseCard v-if="noActive" class="dark:text-indigo-100" :name="'无活跃课程'" />
             <CourseCard v-for="course in activeCourses" :key="course.id" class="dark:text-indigo-100"
-                :name="course.name" :image="course.cover ? `assets://${course.id}.jpg` : null" />
+                :name="course.name" :time="course.time" :id="course.id" />
             <!-- 根据开关显示非激活课程 -->
             <CourseCard v-if="showInactive" v-for="course in inactiveCourses" :key="course.id"
-                class="dark:text-indigo-100" :name="course.name"
-                :image="course.cover ? `assets://${course.id}.jpg` : null" />
+                class="dark:text-indigo-100" :name="course.name" :time="course.time" :id="course.id" />
         </ul>
 
     </Layout>
@@ -39,8 +36,6 @@ const activeCourses = computed(() => {
 const inactiveCourses = computed(() => {
     return courses.filter(course => !course.is_active);
 });
-
-const noActive = computed(() => activeCourses.value.length === 0);
 // 切换显示状态
 const toggleInactive = () => {
     showInactive.value = !showInactive.value;

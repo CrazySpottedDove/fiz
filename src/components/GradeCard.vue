@@ -28,7 +28,7 @@ const props = defineProps({
     name: String,
     grade: String,
     gpa: Number,
-    credit: Number,
+    credit: String,
 });
 const gpaClass = computed(() => {
     if (props.gpa >= 4.5) {

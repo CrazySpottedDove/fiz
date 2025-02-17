@@ -1,16 +1,15 @@
 use crate::{
     session::{Session, SESSION},
-    utils::{Load, Store, ASSETS_DIR, CONFIG_DIR},
+    utils::{Load, Store, CONFIG_DIR},
 };
 use anyhow::Result;
-use futures::StreamExt;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{fs, io::Write, path::PathBuf, sync::Mutex};
+use std::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 const SEMESTERS_URL: &str = "https://courses.zju.edu.cn/api/my-semesters?";
-const COURSES_URL: &str = "https://courses.zju.edu.cn/api/my-courses?conditions=%7B%22status%22:%5B%22ongoing%22,%22notStarted%22%5D,%22keyword%22:%22%22,%22classify_type%22:%22recently_started%22,%22display_studio_list%22:false%7D&fields=id,name,semester_id,small_cover&page=1&page_size=1000";
+const COURSES_URL: &str = "https://courses.zju.edu.cn/api/my-courses?conditions=%7B%22status%22:%5B%22ongoing%22,%22notStarted%22%5D,%22keyword%22:%22%22,%22classify_type%22:%22recently_started%22,%22display_studio_list%22:false%7D&fields=id,name,semester_id,course_attributes&page=1&page_size=1000";
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Semester {
     pub id: u64,
@@ -32,7 +31,7 @@ impl Semester {
     }
 }
 
-impl Load for Vec<Semester>{
+impl Load for Vec<Semester> {
     fn load() -> Self {
         let semesters_dir = CONFIG_DIR.join("semesters.json");
         if semesters_dir.exists() {
@@ -106,22 +105,22 @@ pub struct Course {
     pub name: String,
     pub is_active: bool,
     pub semester_id: u64,
-    pub cover: bool,
+    pub time: String,
 }
 
 impl Course {
-    pub fn new(id: u64, name: String, is_active: bool, semester_id: u64, cover:bool) -> Self {
+    pub fn new(id: u64, name: String, is_active: bool, semester_id: u64, time: String) -> Self {
         Self {
             id,
             name,
             is_active,
             semester_id,
-            cover,
+            time,
         }
     }
 }
 
-impl Load for Vec<Course>{
+impl Load for Vec<Course> {
     fn load() -> Self {
         let courses_dir = CONFIG_DIR.join("courses.json");
         if courses_dir.exists() {
@@ -146,75 +145,26 @@ impl Store for Vec<Course> {
     }
 }
 
-
 lazy_static! {
     pub static ref COURSES: Mutex<Vec<Course>> = Mutex::new(Vec::<Course>::load());
 }
 
 impl Session {
-    pub async fn download_cover(&self, url: &str, id: String) -> Result<()> {
-        let res = self.client.get(url).send().await?;
-        let content_type = res
-            .headers()
-            .get(reqwest::header::CONTENT_TYPE)
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or("application/octet-stream");
-        let extension = match content_type {
-            "image/jpeg" => "jpg",
-            "image/png" => "png",
-            _ => "jpg",
-        };
-        let cover_dir = ASSETS_DIR.join(format!("{id}.{extension}"));
-        let mut stream = res.bytes_stream();
-        let mut file = fs::File::create(cover_dir)?;
-
-        while let Some(chunk) = stream.next().await {
-            let chunk = chunk?;
-            file.write_all(&chunk)?;
-        }
-        Ok(())
-    }
     pub async fn get_courses(&self) -> Result<()> {
         let res = self.client.get(COURSES_URL).send().await?;
         let json = res.json::<Value>().await?;
-        let ids = COURSES
-            .lock()
-            .unwrap()
-            .iter()
-            .map(|course| course.id)
-            .collect::<Vec<u64>>();
         let courses_array = json["courses"].as_array().unwrap();
-
-        // 并发下载缺失的封面图片
-        use futures::stream::{FuturesUnordered, StreamExt};
-        let mut downloads = FuturesUnordered::new();
-        for item in courses_array {
-            let id = item["id"].as_u64().unwrap();
-            if !ids.contains(&id) {
-                let small_cover = item["small_cover"].as_str().unwrap();
-                if small_cover.is_empty() {
-                    continue;
-                }
-                let download = self.download_cover(small_cover, id.to_string());
-                // 注意这里直接传入self.download_cover返回的Future
-                downloads.push(download);
-            }
-        }
-        // 并发执行所有下载任务
-        while let Some(result) = downloads.next().await {
-            result?;
-        }
-
-        // 构造 Course 对象
         let courses = courses_array
             .iter()
             .map(|item| {
                 let id = item["id"].as_u64().unwrap();
                 let name = item["name"].as_str().unwrap().to_string();
                 let semester_id = item["semester_id"].as_u64().unwrap();
-                let is_active = !item["credit_state"].is_null();
-                let cover = !item["small_cover"].as_str().unwrap().is_empty();
-                Course::new(id, name, is_active, semester_id,cover)
+                let time = item["course_attributes"]["teaching_class_name"]
+                    .as_str()
+                    .unwrap()
+                    .to_string();
+                Course::new(id, name, false, semester_id, time)
             })
             .collect::<Vec<Course>>();
         *COURSES.lock().unwrap() = courses;
@@ -240,7 +190,16 @@ pub fn init_courses(app: AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn get_courses() -> Result<Vec<Course>, String> {
+    SESSION.get_semesters().await.map_err(|e| e.to_string())?;
     SESSION.get_courses().await.map_err(|e| e.to_string())?;
+    for course in COURSES.lock().unwrap().iter_mut() {
+        for semester in SEMESTERS.lock().unwrap().iter() {
+            if semester.id == course.semester_id && semester.is_active {
+                course.is_active = true;
+                break;
+            }
+        }
+    }
     Ok(COURSES.lock().unwrap().clone())
 }
 

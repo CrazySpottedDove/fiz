@@ -15,3 +15,19 @@ export const useGradeStore = defineStore('grade', {
         }
     }
 })
+
+export const useMaterialStore = defineStore('material', {
+    state: () => {
+        return {
+            materials: {}
+        }
+    }
+})
+
+export const useConfigStore = defineStore('config',{
+    state:()=>{
+        return {
+            config:{}
+        }
+    }
+})

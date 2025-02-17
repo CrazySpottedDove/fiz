@@ -14,6 +14,7 @@ async function initializeApp() {
             invoke('init_semesters').catch(err => window.alert(`初始化学期失败：${err}`));
             invoke('init_courses').catch(err => window.alert(`初始化课程失败：${err}`));
             invoke('init_grades_and_analysis').catch(err => window.alert(`初始化成绩和分析失败：${err}`));
+            invoke('init_config').catch(err => window.alert(`初始化配置失败：${err}`));
             invoke('login').catch(err => window.alert(`登录失败：${err}`));
         } else {
             console.log('账号未登录');

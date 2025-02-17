@@ -4,14 +4,22 @@ import { onMounted, ref, provide } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { useRouter } from 'vue-router';
 import { listen } from '@tauri-apps/api/event';
-import { useCourseStore, useGradeStore } from './stores';
+import { useMaterialStore, useCourseStore, useGradeStore, useConfigStore } from './stores';
 const courseStore = useCourseStore();
 const gradeStore = useGradeStore();
+const materialStore = useMaterialStore();
+const configStore = useConfigStore();
 listen("courses-inited", (event) => {
     courseStore.courses = event.payload;
 });
 listen("grades-and-analysis-inited", (event) => {
     [gradeStore.grades, gradeStore.analysis] = event.payload;
+});
+listen("materials-inited", (event) => {
+    materialStore.materials = event.payload;
+});
+listen("config-inited", (event) => {
+    configStore.config = event.payload;
 });
 listen("login-success", async (event) => {
     const [coursesResult, gradesResult] = await Promise.allSettled([
@@ -21,9 +29,14 @@ listen("login-success", async (event) => {
 
     if (coursesResult.status === "fulfilled") {
         courseStore.courses = coursesResult.value;
+        try {
+            const materials = await invoke("get_materials");
+            materialStore.materials = materials;
+        } catch (error) {
+            window.alert(`获取课件失败：${error}`);
+        }
     } else {
         window.alert(`获取课程失败：${coursesResult.reason}`);
-        // 不覆盖 courseStore.courses，保留原有数据
     }
 
     if (gradesResult.status === "fulfilled") {
@@ -32,7 +45,6 @@ listen("login-success", async (event) => {
         gradeStore.analysis = analysis;
     } else {
         window.alert(`获取成绩信息失败：${gradesResult.reason}`);
-        // 不覆盖 gradeStore，保留原有数据
     }
 });
 </script>

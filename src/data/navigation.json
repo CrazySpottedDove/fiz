@@ -14,5 +14,9 @@
     {
         "href":"/login",
         "text":"登出"
+    },
+    {
+        "href":"/setting",
+        "text":"设置"
     }
 ]

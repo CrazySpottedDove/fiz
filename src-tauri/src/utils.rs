@@ -1,11 +1,13 @@
 use crate::account::ACCOUNT;
 use crate::courseware::{COURSES, SEMESTERS};
 use crate::grade::{ANALYSIS, GRADES};
+use crate::material::MATERIALS;
 use crate::session::SESSION;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use tauri::{AppHandle, Emitter};
 lazy_static! {
     static ref FIZ_DIR: PathBuf = get_fiz_dir();
     pub static ref CONFIG_DIR: PathBuf = FIZ_DIR.join(".config");
@@ -33,6 +35,7 @@ pub struct Config {
     pub exp: bool,
     pub accept_mp4: bool,
 }
+
 impl Store for Config {
     fn store(&self) -> Result<(), String> {
         let config_dir = CONFIG_DIR.join("config.json");
@@ -53,7 +56,7 @@ impl Config {
 pub trait Store {
     fn store(&self) -> Result<(), String>;
 }
-impl Load for Config{
+impl Load for Config {
     fn load() -> Self {
         let config_dir = CONFIG_DIR.join("config.json");
         if config_dir.exists() {
@@ -69,8 +72,8 @@ impl Load for Config{
         }
     }
 }
-pub trait Load{
-    fn load()->Self;
+pub trait Load {
+    fn load() -> Self;
 }
 
 #[tauri::command]
@@ -98,6 +101,7 @@ pub fn store() -> Result<(), String> {
     CONFIG.store()?;
     GRADES.lock().unwrap().store()?;
     ANALYSIS.lock().unwrap().store()?;
+    MATERIALS.lock().unwrap().store()?;
     Ok(())
 }
 
@@ -114,4 +118,11 @@ pub fn rsa_no_padding(src: &str, modulus: &str, exponent: &str) -> String {
         .iter()
         .map(|byte| format!("{:02x}", byte))
         .collect()
+}
+
+#[tauri::command]
+pub fn init_config(app: AppHandle) -> Result<(), String> {
+    app.emit("config-inited", &*CONFIG)
+        .map_err(|e| e.to_string())?;
+    Ok(())
 }
