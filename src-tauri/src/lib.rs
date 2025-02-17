@@ -9,23 +9,32 @@ use utils::ASSETS_DIR;
 pub fn run() {
     tauri::Builder::default()
         .register_uri_scheme_protocol("assets", |_, request| {
-            // 获取 URI，例如 "dynamic://80058.jpg"
+            use percent_encoding::percent_decode_str;
+            use std::path::MAIN_SEPARATOR;
+
             let uri = request.uri();
-            // 去除前缀，得到文件名
-            let file_name = uri
+
+            // 解码 host 和 path
+            let host = uri
+                .host()
+                .map(|h| percent_decode_str(h).decode_utf8_lossy().to_string())
+                .unwrap_or_default();
+            let path = percent_decode_str(uri.path())
+                .decode_utf8_lossy()
                 .to_string()
-                .replace("assets://", "")
-                .trim_end_matches('/')
+                .trim_start_matches('/')
                 .to_string();
-            // 拼接实际的文件路径
-            println!("{file_name}");
+
+            // 组合逻辑：优先使用 host（如果 path 为空）
+            let file_name = if path.is_empty() { host } else { path };
+
+            // 转换路径分隔符（将 `/` 替换为系统分隔符）
+            let file_name = file_name.replace('/', &MAIN_SEPARATOR.to_string());
+
+            // 最终文件路径
             let file_path = ASSETS_DIR.join(&file_name);
-            println!("文件路径: {:?}", file_path);
-            if file_path.exists() {
-                println!("文件存在");
-            } else {
-                println!("文件不存在");
-            }
+
+            println!("请求文件: {:?}", file_path);
             // 尝试读取文件数据
             match std::fs::read(&file_path) {
                 Ok(data) => {

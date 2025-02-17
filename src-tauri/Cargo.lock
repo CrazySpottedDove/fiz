@@ -1041,6 +1041,7 @@ dependencies = [
  "futures",
  "lazy_static",
  "num",
+ "percent-encoding",
  "regex",
  "reqwest",
  "reqwest_cookie_store",
