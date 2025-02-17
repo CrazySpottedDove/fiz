@@ -10,11 +10,11 @@
             </div>
             <!-- 右侧：头像图片 -->
             <div v-if="image"
-                class="rounded aspect-square overflow-hidden inline-flex drop-shadow-none lg:drop-shadow-[0px_0px_20px_rgba(83,70,200,0.90)] flex-shrink-0">
-                <img :src="image" alt="Image" class="aspect-square w-20 h-20 object-cover rounded-full" />
+                class="aspect-square overflow-hidden inline-flex drop-shadow-none lg:drop-shadow-[0px_0px_20px_rgba(83,70,200,0.90)] flex-shrink-0">
+                <img :src="image" alt="Image" class="aspect-square w-20 h-20 object-contain rounded-md" />
             </div>
             <div v-else
-                class="rounded aspect-square overflow-hidden inline-flex drop-shadow-none lg:drop-shadow-[0px_0px_20px_rgba(83,70,200,0.90)] flex-shrink-0 w-20 h-20">
+                class="aspect-square overflow-hidden inline-flex drop-shadow-none lg:drop-shadow-[0px_0px_20px_rgba(83,70,200,0.90)] flex-shrink-0 w-20 h-20">
             </div>
         </a>
     </li>

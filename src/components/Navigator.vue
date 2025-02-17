@@ -1,7 +1,6 @@
 <script setup>
 import navigation from "../data/navigation";
 import Link from "./Link.vue";
-import icon from "../assets/fiz.ico"
 </script>
 <template>
     <nav class="sticky top-0 z-10 lg:backdrop-blur-lg bg-zinc-900 bg-opacity-90 lg:bg-opacity-50 py-4 px-6 lg:px-0">
