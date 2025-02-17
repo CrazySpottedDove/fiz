@@ -30,7 +30,10 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "icons/icon.ico"
+      "icons/icon.ico",
+      "icons/128x128.png",
+    "icons/256x256.png",
+        "icons/512x512.png"
     ]
   }
 }
