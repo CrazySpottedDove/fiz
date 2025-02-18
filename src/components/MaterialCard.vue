@@ -42,9 +42,6 @@
             </template>
             <template v-else-if="previewType === 'pdf'">
                 <iframe :src="previewData" class="w-full h-full"></iframe>
-                <!-- <div class="w-full h-full flex items-center justify-center">
-                    <PdfViewer :pdfUrl="previewData" />
-                </div> -->
             </template>
         </div>
     </div>
@@ -53,7 +50,6 @@
 <script setup>
 import { ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
-import PdfViewer from './PdfViewer.vue';
 const props = defineProps({
     title: String,
     uploads: Array
