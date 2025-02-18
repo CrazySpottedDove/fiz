@@ -83,7 +83,7 @@ impl Session {
                 .ok_or(anyhow!("EXPONENT NOT FOUND"))?;
             Ok((modulus.to_string(), exponent.to_string()))
         }
-        for retry in 1..=MAX_RETRIES {
+        for retry in 1..MAX_RETRIES {
             let (res_execution, res_pubkey) = join!(get_execution(self), get_pubkey(self));
             let execution = res_execution?;
             let (modulus, exponent) = res_pubkey?;
@@ -99,7 +99,7 @@ impl Session {
             let res_login = self.client.post(LOGIN_URL).form(&params).send().await?;
 
             if res_login.url().to_string().contains(LOGIN_URL) {
-                if retry == MAX_RETRIES {
+                if retry == MAX_RETRIES - 1 {
                     account.valid = false;
                     return Err(anyhow!("请检查学号-密码正确性及你的网络连接状态"));
                 }
@@ -171,5 +171,3 @@ pub async fn relogin(stuid: String, password: String, app: AppHandle) -> Result<
     println!("Relogin success");
     Ok(())
 }
-
-

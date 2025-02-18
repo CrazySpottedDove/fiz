@@ -23,44 +23,34 @@ listen("config-inited", (event) => {
 listen("homeworks-inited", (event) => {
     homeworkStore.setHomeworks(event.payload);
 });
-listen("login-success", async (event) => {
-    const [coursesResult, gradesResult] = await Promise.allSettled([
-        invoke("get_courses"),
-        invoke("get_grades_and_analysis")
-    ]);
-
-    if (coursesResult.status === "fulfilled") {
-        courseStore.setCourses(coursesResult.value);
-        try {
-            const [materialsResult, homeworksResult] = await Promise.allSettled([
-                invoke("get_materials"),
-                invoke("get_homeworks")
-            ])
-            if (materialsResult.status === "fulfilled") {
-                materialStore.setMaterials(materialsResult.value);
-            } else {
-                window.alert(`获取课件失败：${materialsResult.reason}`);
-            }
-            if (homeworksResult.status === "fulfilled") {
-                homeworkStore.setHomeworks(homeworksResult.value);
-            } else {
-                window.alert(`获取作业失败：${homeworksResult.reason}`);
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    } else {
-        window.alert(`获取课程失败：${coursesResult.reason}`);
-    }
-
-    if (gradesResult.status === "fulfilled") {
-        const [grades, analysis] = gradesResult.value;
+listen("login-success", (event) => {
+    const coursesPromise = invoke("get_courses");
+    const gradesPromise = invoke("get_grades_and_analysis");
+    coursesPromise.then((courses) => {
+        courseStore.setCourses(courses);
+        const materialsPromise = invoke("get_materials");
+        const homeworksPromise = invoke("get_homeworks");
+        materialsPromise.then((materials) => {
+            materialStore.setMaterials(materials);
+        }).catch((error) => {
+            window.alert(`获取课件失败：${error}`);
+        });
+        homeworksPromise.then((homeworks) => {
+            homeworkStore.setHomeworks(homeworks);
+        }).catch((error) => {
+            window.alert(`获取作业失败：${error}`);
+        });
+    }).catch((error) => {
+        window.alert(`获取课程失败：${error}`);
+    });
+    gradesPromise.then(([grades, analysis]) => {
         gradeStore.setGrades(grades);
         gradeStore.setAnalysis(analysis);
-    } else {
-        window.alert(`获取成绩信息失败：${gradesResult.reason}`);
-    }
+    }).catch((error) => {
+        window.alert(`获取成绩信息失败：${error}`);
+    });
 });
+
 </script>
 
 <template>

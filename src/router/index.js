@@ -5,7 +5,13 @@ import Courseware from '../views/Courseware.vue';
 import Grade from '../views/Grade.vue';
 import CoursewareDetail from '../views/CoursewareDetail.vue';
 import Setting from '../views/Setting.vue';
+import Init from '../views/Init.vue';
 const routes = [
+    {
+        path:'/',
+        name:'Init',
+        component: Init
+    },
     {
         path: '/login',
         name: 'Login',
@@ -30,7 +36,7 @@ const routes = [
         path: '/courseware/:id',
         name: 'CoursewareDetail',
         component: CoursewareDetail,
-        props: true 
+        props: true
     },
     {
         path: '/setting',

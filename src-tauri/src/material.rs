@@ -1,7 +1,7 @@
 use crate::{
     courseware::COURSES,
     session::{Session, MAX_RETRIES, SESSION},
-    utils::{Load, Store, CONFIG_DIR, COURSEWARE_DIR},
+    utils::{Load, Store, CONFIG, CONFIG_DIR},
 };
 use anyhow::{anyhow, Result};
 use futures::{future::join_all, StreamExt};
@@ -136,7 +136,7 @@ impl Session {
     ) -> Result<()> {
         let url = format!("https://courses.zju.edu.cn/api/uploads/reference/{reference_id}/blob");
         let res = self.client.get(url).send().await?;
-        let path = COURSEWARE_DIR.join(title);
+        let path = CONFIG.read().unwrap().courseware_dir.join(title);
         std::fs::create_dir_all(&path)?;
         let mut file = File::create(path.join(name)).await?;
         let mut stream = res.bytes_stream();

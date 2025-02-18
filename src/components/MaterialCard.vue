@@ -8,43 +8,8 @@
         </div>
         <br>
         <UploadsCard :uploads="uploads" :title="materialName" />
-        <!-- <ul>
-            <li v-for="upload in uploads" :key="upload.id"
-                class="dark:text-zinc-400 text-zinc-500 gap-1 p-6 border dark:border-zinc-700/60 rounded-lg flex flex-col bg-opacity-40 dark:bg-opacity-40 bg-zinc-50 dark:bg-zinc-800">
-                <div class="flex justify-between items-center w-full">
-                    <h1 class="text-lg font-bold dark:text-blue-300 text-zinc-700 [word-break:break-word]"
-                        :class="previewAble(upload.name) ? 'cursor-pointer' : 'cursor-not-allowed'"
-                        @click="previewAble(upload.name) && preview(upload.reference_id)">
-                        {{ upload.name }}
-                    </h1>
-                    <p class="text-xl font-bold active:text-green-400 cursor-pointer hover:text-emerald-600" @click="fetch(upload.reference_id, upload.name)">↓
-                    </p>
-                </div>
-            </li>
-        </ul> -->
     </li>
     <br>
-
-
-    <!-- <div v-if="loading || showPreview" class="fixed inset-0 z-50 dark:bg-zinc-900 bg-opacity-80 flex flex-col">
-        <div class="flex justify-end p-4">
-            <button @click="closePreview" class="text-cyan-500 hover:text-blue-700 text-xl font-bold">关闭</button>
-        </div>
-        <div class="flex-1 flex justify-center items-center">
-            <template v-if="loading">
-                <div>
-                    <p class="text-white font-bold text-xl">加载中...</p>
-                    <p class="text-white font-bold text-xl">fiz 预览功能性能较差，建议下载文件到本地/(ㄒoㄒ)/~~</p>
-                </div>
-            </template>
-            <template v-else-if="previewType === 'image'">
-                <img :src="previewData" class="w-full h-full object-contain" />
-            </template>
-            <template v-else-if="previewType === 'pdf'">
-                <iframe :src="previewData" class="w-full h-full"></iframe>
-            </template>
-        </div>
-    </div> -->
 </template>
 
 <script setup>

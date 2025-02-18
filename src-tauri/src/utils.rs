@@ -13,8 +13,6 @@ use tauri::{AppHandle, Emitter};
 lazy_static! {
     static ref FIZ_DIR: PathBuf = get_fiz_dir();
     pub static ref CONFIG_DIR: PathBuf = FIZ_DIR.join(".config");
-    pub static ref COURSEWARE_DIR: PathBuf = CONFIG.read().unwrap().courseware_dir.clone();
-    pub static ref ASSETS_DIR: PathBuf = FIZ_DIR.join("assets");
     pub static ref CONFIG: RwLock<Config> = RwLock::new(Config::load());
 }
 pub fn get_fiz_dir() -> PathBuf {
@@ -82,12 +80,6 @@ pub trait Load {
 pub fn check_dir() -> Result<(), String> {
     if !CONFIG_DIR.exists() {
         std::fs::create_dir_all(CONFIG_DIR.as_path()).map_err(|e| e.to_string())?;
-    }
-    if !COURSEWARE_DIR.exists() {
-        std::fs::create_dir_all(COURSEWARE_DIR.as_path()).map_err(|e| e.to_string())?;
-    }
-    if !ASSETS_DIR.exists() {
-        std::fs::create_dir_all(ASSETS_DIR.as_path()).map_err(|e| e.to_string())?;
     }
     Ok(())
 }
