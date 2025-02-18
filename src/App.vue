@@ -1,25 +1,27 @@
-<!-- filepath: /home/dove/CrazySpottedDove/fiz/src/App.vue -->
 <script setup>
-import { onMounted, ref, provide } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
-import { useRouter } from 'vue-router';
 import { listen } from '@tauri-apps/api/event';
-import { useMaterialStore, useCourseStore, useGradeStore, useConfigStore } from './stores';
+import { useMaterialStore, useCourseStore, useGradeStore, useConfigStore, useHomeworkStore } from './stores';
 const courseStore = useCourseStore();
 const gradeStore = useGradeStore();
 const materialStore = useMaterialStore();
 const configStore = useConfigStore();
+const homeworkStore = useHomeworkStore();
 listen("courses-inited", (event) => {
-    courseStore.courses = event.payload;
+    courseStore.setCourses(event.payload);
 });
 listen("grades-and-analysis-inited", (event) => {
-    [gradeStore.grades, gradeStore.analysis] = event.payload;
+    gradeStore.setGrades(event.payload[0]);
+    gradeStore.setAnalysis(event.payload[1]);
 });
 listen("materials-inited", (event) => {
-    materialStore.materials = event.payload;
+    materialStore.setMaterials(event.payload);
 });
 listen("config-inited", (event) => {
-    configStore.config = event.payload;
+    configStore.setConfig(event.payload);
+});
+listen("homeworks-inited", (event) => {
+    homeworkStore.setHomeworks(event.payload);
 });
 listen("login-success", async (event) => {
     const [coursesResult, gradesResult] = await Promise.allSettled([
@@ -28,12 +30,24 @@ listen("login-success", async (event) => {
     ]);
 
     if (coursesResult.status === "fulfilled") {
-        courseStore.courses = coursesResult.value;
+        courseStore.setCourses(coursesResult.value);
         try {
-            const materials = await invoke("get_materials");
-            materialStore.materials = materials;
+            const [materialsResult, homeworksResult] = await Promise.allSettled([
+                invoke("get_materials"),
+                invoke("get_homeworks")
+            ])
+            if (materialsResult.status === "fulfilled") {
+                materialStore.setMaterials(materialsResult.value);
+            } else {
+                window.alert(`获取课件失败：${materialsResult.reason}`);
+            }
+            if (homeworksResult.status === "fulfilled") {
+                homeworkStore.setHomeworks(homeworksResult.value);
+            } else {
+                window.alert(`获取作业失败：${homeworksResult.reason}`);
+            }
         } catch (error) {
-            window.alert(`获取课件失败：${error}`);
+            console.error(error);
         }
     } else {
         window.alert(`获取课程失败：${coursesResult.reason}`);
@@ -41,8 +55,8 @@ listen("login-success", async (event) => {
 
     if (gradesResult.status === "fulfilled") {
         const [grades, analysis] = gradesResult.value;
-        gradeStore.grades = grades;
-        gradeStore.analysis = analysis;
+        gradeStore.setGrades(grades);
+        gradeStore.setAnalysis(analysis);
     } else {
         window.alert(`获取成绩信息失败：${gradesResult.reason}`);
     }

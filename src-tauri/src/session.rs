@@ -9,7 +9,6 @@ use reqwest::Client;
 use reqwest_cookie_store::CookieStoreMutex;
 
 use std::fs;
-use std::path::PathBuf;
 use std::sync::Arc;
 pub const MAX_RETRIES: usize = 3;
 pub const HOME_URL: &str = "https://courses.zju.edu.cn";

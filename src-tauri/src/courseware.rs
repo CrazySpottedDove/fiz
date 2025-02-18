@@ -31,25 +31,25 @@ impl Semester {
     }
 }
 
-impl Load for Vec<Semester> {
-    fn load() -> Self {
-        let semesters_dir = CONFIG_DIR.join("semesters.json");
-        if semesters_dir.exists() {
-            let Ok(reader) = std::fs::File::open(semesters_dir) else {
-                return Self::new();
-            };
-            let Ok(semesters) = serde_json::from_reader(reader) else {
-                return Self::new();
-            };
-            semesters
-        } else {
-            Self::new()
-        }
-    }
-}
+// impl Load for Vec<Semester> {
+//     fn load() -> Self {
+//         let semesters_dir = CONFIG_DIR.join("semesters.json");
+//         if semesters_dir.exists() {
+//             let Ok(reader) = std::fs::File::open(semesters_dir) else {
+//                 return Self::new();
+//             };
+//             let Ok(semesters) = serde_json::from_reader(reader) else {
+//                 return Self::new();
+//             };
+//             semesters
+//         } else {
+//             Self::new()
+//         }
+//     }
+// }
 
 lazy_static! {
-    pub static ref SEMESTERS: Mutex<Vec<Semester>> = Mutex::new(Vec::<Semester>::load());
+    pub static ref SEMESTERS: Mutex<Vec<Semester>> = Mutex::new(Vec::new());
 }
 
 impl Session {
@@ -91,14 +91,14 @@ impl Session {
     }
 }
 
-impl Store for Vec<Semester> {
-    fn store(&self) -> Result<(), String> {
-        let semesters_dir = CONFIG_DIR.join("semesters.json");
-        let semesters_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        std::fs::write(semesters_dir, semesters_str).map_err(|e| e.to_string())?;
-        Ok(())
-    }
-}
+// impl Store for Vec<Semester> {
+//     fn store(&self) -> Result<(), String> {
+//         let semesters_dir = CONFIG_DIR.join("semesters.json");
+//         let semesters_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
+//         std::fs::write(semesters_dir, semesters_str).map_err(|e| e.to_string())?;
+//         Ok(())
+//     }
+// }
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Course {
     pub id: u64,
@@ -170,14 +170,6 @@ impl Session {
         *COURSES.lock().unwrap() = courses;
         Ok(())
     }
-}
-
-#[tauri::command]
-pub fn init_semesters(app: AppHandle) -> Result<(), String> {
-    let semesters = &*SEMESTERS.lock().unwrap();
-    app.emit("semesters-inited", semesters)
-        .map_err(|e| e.to_string())?;
-    Ok(())
 }
 
 #[tauri::command]

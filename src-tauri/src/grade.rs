@@ -1,6 +1,6 @@
 use crate::account::ACCOUNT;
 use crate::session::SESSION;
-use crate::session::{Session, MAX_RETRIES};
+use crate::session::{Session, MAX_RETRIES, GRADER_URL};
 use crate::utils::{Load, Store, CONFIG_DIR};
 use anyhow::Result;
 use lazy_static::lazy_static;
@@ -73,7 +73,7 @@ impl Grade {
         let mut total_gpa = 0.0;
         let grouped_grades = Grade::group_by_xq_and_xn(grades);
         for (key, grades) in grouped_grades {
-            for grade in &grades{
+            for grade in &grades {
                 let credit = grade.credit.parse::<f64>().unwrap();
                 let gpa = grade.gpa;
                 total_credit += credit;
@@ -153,6 +153,7 @@ impl Session {
                     if retry == MAX_RETRIES {
                         return Err(anyhow::anyhow!("获取成绩失败"));
                     }
+                    self.client.get(GRADER_URL).send().await?;
                 }
             }
         }

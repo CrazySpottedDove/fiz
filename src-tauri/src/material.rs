@@ -1,16 +1,17 @@
 use crate::{
     courseware::COURSES,
     session::{Session, MAX_RETRIES, SESSION},
-    utils::{Load, Store, CONFIG_DIR},
+    utils::{Load, Store, CONFIG_DIR, COURSEWARE_DIR},
 };
 use anyhow::{anyhow, Result};
-use futures::future::join_all;
+use futures::{future::join_all, StreamExt};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter};
+use tokio::{fs::File, io::AsyncWriteExt};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Upload {
     pub id: u64,
@@ -57,7 +58,11 @@ lazy_static! {
 
 impl Upload {
     pub fn new(id: u64, reference_id: u64, name: String) -> Self {
-        Self { id, reference_id, name }
+        Self {
+            id,
+            reference_id,
+            name,
+        }
     }
 }
 impl Session {
@@ -122,6 +127,26 @@ impl Session {
         }
         Ok(())
     }
+
+    pub async fn fetch_upload(
+        &self,
+        reference_id: u64,
+        title: String,
+        name: String,
+    ) -> Result<()> {
+        let url = format!("https://courses.zju.edu.cn/api/uploads/reference/{reference_id}/blob");
+        let res = self.client.get(url).send().await?;
+        let path = COURSEWARE_DIR.join(title);
+        std::fs::create_dir_all(&path)?;
+        let mut file = File::create(path.join(name)).await?;
+        let mut stream = res.bytes_stream();
+        while let Some(chunk) = stream.next().await {
+            let chunk = chunk?;
+            file.write_all(&chunk).await?;
+        }
+        RECORD.lock().unwrap().push(reference_id);
+        Ok(())
+    }
 }
 
 #[tauri::command]
@@ -136,4 +161,45 @@ pub fn init_materials(app: AppHandle) -> Result<(), String> {
 pub async fn get_materials() -> Result<HashMap<u64, Vec<Material>>, String> {
     SESSION.get_materials().await.map_err(|e| e.to_string())?;
     Ok(MATERIALS.lock().unwrap().clone())
+}
+
+lazy_static! {
+    pub static ref RECORD: Mutex<Vec<u64>> = Mutex::new(Vec::<u64>::load());
+}
+
+impl Store for Vec<u64> {
+    fn store(&self) -> Result<(), String> {
+        let record_dir = CONFIG_DIR.join("record.json");
+        let record_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
+        std::fs::write(record_dir, record_str).map_err(|e| e.to_string())?;
+        Ok(())
+    }
+}
+
+impl Load for Vec<u64> {
+    fn load() -> Self {
+        let record_dir = CONFIG_DIR.join("record.json");
+        if record_dir.exists() {
+            let Ok(reader) = std::fs::File::open(record_dir) else {
+                return Vec::new();
+            };
+            let Ok(record) = serde_json::from_reader(reader) else {
+                return Vec::new();
+            };
+            record
+        } else {
+            Vec::new()
+        }
+    }
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub async fn fetch_upload(reference_id: u64, title: String, name: String) -> Result<(), String> {
+    {
+        SESSION
+            .fetch_upload(reference_id, title, name)
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }

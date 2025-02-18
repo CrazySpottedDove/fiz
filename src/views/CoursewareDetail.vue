@@ -3,8 +3,8 @@
         <h1 class="text-cyan-500 text-center text-xl font-bold">{{ name }}</h1>
         <br>
         <ul>
-            <MaterialCard v-for="material in materials" :key="material.id" :title="material.title"
-                :uploads="material.uploads" />
+            <MaterialCard v-for="material in materials" :key="material.id" :materialName="material.title"
+                :uploads="material.uploads" :title="name" />
         </ul>
     </Layout>
 </template>

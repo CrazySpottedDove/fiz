@@ -5,6 +5,8 @@ mod material;
 mod preview;
 mod session;
 mod utils;
+mod homework;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -22,7 +24,6 @@ pub fn run() {
             utils::check_dir,
             account::login,
             account::relogin,
-            courseware::init_semesters,
             courseware::init_courses,
             courseware::get_courses,
             grade::init_grades_and_analysis,
@@ -32,6 +33,9 @@ pub fn run() {
             preview::get_preview,
             utils::init_config,
             utils::update_config,
+            material::fetch_upload,
+            homework::init_homeworks,
+            homework::get_homeworks,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

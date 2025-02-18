@@ -1,14 +1,15 @@
 use crate::account::ACCOUNT;
-use crate::courseware::{COURSES, SEMESTERS};
+use crate::courseware::COURSES;
 use crate::grade::{ANALYSIS, GRADES};
-use crate::material::MATERIALS;
+use crate::homework::HOMEWORKS;
+use crate::material::{MATERIALS, RECORD};
 use crate::session::SESSION;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use tauri::{AppHandle, Emitter};
 use std::sync::RwLock;
+use tauri::{AppHandle, Emitter};
 lazy_static! {
     static ref FIZ_DIR: PathBuf = get_fiz_dir();
     pub static ref CONFIG_DIR: PathBuf = FIZ_DIR.join(".config");
@@ -98,11 +99,12 @@ pub fn store() -> Result<(), String> {
     }
     SESSION.store()?;
     COURSES.lock().unwrap().store()?;
-    SEMESTERS.lock().unwrap().store()?;
     CONFIG.read().unwrap().store()?;
     GRADES.lock().unwrap().store()?;
     ANALYSIS.lock().unwrap().store()?;
     MATERIALS.lock().unwrap().store()?;
+    RECORD.lock().unwrap().store()?;
+    HOMEWORKS.lock().unwrap().store()?;
     Ok(())
 }
 
@@ -128,8 +130,8 @@ pub fn init_config(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command( rename_all = "snake_case")]
-pub fn update_config(courseware_dir:PathBuf, exp:bool,accept_mp4:bool){
+#[tauri::command(rename_all = "snake_case")]
+pub fn update_config(courseware_dir: PathBuf, exp: bool, accept_mp4: bool) {
     let mut config = CONFIG.write().unwrap();
     config.courseware_dir = courseware_dir;
     config.exp = exp;
