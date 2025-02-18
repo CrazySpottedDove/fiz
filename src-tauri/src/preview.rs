@@ -9,6 +9,7 @@ impl Session {
         let res = self.client.get(url).send().await?;
         let json = res.json::<Value>().await?;
         let url = json["url"].as_str().ok_or(anyhow!("预览请求返回无 url 字段"));
+        println!("{:?}",url);
         let res = self.client.get(url?).send().await?;
         let headers = res.headers().clone();
         let content_type = headers

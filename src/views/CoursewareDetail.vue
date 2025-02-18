@@ -25,6 +25,5 @@ onMounted(() => {
     name.value = route.query.name;
     // 从全局的课程 store 中查找课程
     materials.value = materialStore.materials[courseId];
-
 });
 </script>

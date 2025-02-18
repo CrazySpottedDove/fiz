@@ -31,6 +31,7 @@ pub fn run() {
             material::get_materials,
             preview::get_preview,
             utils::init_config,
+            utils::update_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

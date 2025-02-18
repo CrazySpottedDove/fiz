@@ -1,4 +1,5 @@
 <script setup>
+import { invoke } from '@tauri-apps/api/core';
 import Layout from '../components/Layout.vue';
 import { useConfigStore } from '../stores';
 import { ref } from 'vue';
@@ -15,6 +16,7 @@ const config = ref({
 function saveConfig() {
     // 复制配置到全局 store 中
     configStore.config = { ...config.value };
+    invoke('update_config', { courseware_dir: configStore.config.courseware_dir, exp: configStore.config.exp, accept_mp4: configStore.config.accept_mp4 });
     alert('配置已保存');
 }
 </script>

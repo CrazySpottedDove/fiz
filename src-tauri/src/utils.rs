@@ -8,12 +8,13 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Emitter};
+use std::sync::RwLock;
 lazy_static! {
     static ref FIZ_DIR: PathBuf = get_fiz_dir();
     pub static ref CONFIG_DIR: PathBuf = FIZ_DIR.join(".config");
-    pub static ref COURSEWARE_DIR: PathBuf = CONFIG.courseware_dir.clone();
+    pub static ref COURSEWARE_DIR: PathBuf = CONFIG.read().unwrap().courseware_dir.clone();
     pub static ref ASSETS_DIR: PathBuf = FIZ_DIR.join("assets");
-    pub static ref CONFIG: Config = Config::load();
+    pub static ref CONFIG: RwLock<Config> = RwLock::new(Config::load());
 }
 pub fn get_fiz_dir() -> PathBuf {
     #[cfg(target_os = "windows")]
@@ -98,7 +99,7 @@ pub fn store() -> Result<(), String> {
     SESSION.store()?;
     COURSES.lock().unwrap().store()?;
     SEMESTERS.lock().unwrap().store()?;
-    CONFIG.store()?;
+    CONFIG.read().unwrap().store()?;
     GRADES.lock().unwrap().store()?;
     ANALYSIS.lock().unwrap().store()?;
     MATERIALS.lock().unwrap().store()?;
@@ -125,4 +126,12 @@ pub fn init_config(app: AppHandle) -> Result<(), String> {
     app.emit("config-inited", &*CONFIG)
         .map_err(|e| e.to_string())?;
     Ok(())
+}
+
+#[tauri::command( rename_all = "snake_case")]
+pub fn update_config(courseware_dir:PathBuf, exp:bool,accept_mp4:bool){
+    let mut config = CONFIG.write().unwrap();
+    config.courseware_dir = courseware_dir;
+    config.exp = exp;
+    config.accept_mp4 = accept_mp4;
 }

@@ -42,6 +42,9 @@
             </template>
             <template v-else-if="previewType === 'pdf'">
                 <iframe :src="previewData" class="w-full h-full"></iframe>
+                <!-- <div class="w-full h-full flex items-center justify-center">
+                    <PdfViewer :pdfUrl="previewData" />
+                </div> -->
             </template>
         </div>
     </div>
@@ -50,7 +53,7 @@
 <script setup>
 import { ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
-
+import PdfViewer from './PdfViewer.vue';
 const props = defineProps({
     title: String,
     uploads: Array
@@ -60,17 +63,34 @@ const showPreview = ref(false); // 控制模态框显示
 const previewData = ref(''); // 预览数据（Base64 或 URL）
 const previewType = ref(''); // 文件类型（image/pdf/video）
 const loading = ref(false);
+
+function base64ToBlob(base64Data, contentType) {
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: contentType });
+}
+
 async function preview(reference_id) {
     try {
         loading.value = true;
         const [base64Data, contentType] = await invoke('get_preview', { reference_id: reference_id });
 
+        let blob = base64ToBlob(base64Data, contentType);
+        let blobUrl = URL.createObjectURL(blob);
+
         // 根据 content_type 设置预览数据和类型
         if (contentType.startsWith('image/')) {
-            previewData.value = `data:${contentType};base64,${base64Data}`;
+            // previewData.value = `data:${contentType};base64,${base64Data}`;
+            previewData.value = blobUrl;
             previewType.value = 'image';
         } else if (contentType === 'application/pdf') {
-            previewData.value = `data:application/pdf;base64,${base64Data}`;
+            // previewData.value = `data:application/pdf;base64,${base64Data}`;
+            previewData.value = blobUrl;
+            console.log(previewData.value);
             previewType.value = 'pdf';
         } else {
             console.error('不支持的文件类型:', contentType);

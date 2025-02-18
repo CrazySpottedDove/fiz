@@ -14,7 +14,9 @@
     "@tauri-apps/plugin-opener": "^2",
     "pinia": "^3.0.1",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue-pdf-embed": "^1.1.6",
+    "vue-router": "^4.5.0",
+    "vue3-pdfjs": "^0.1.6"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
