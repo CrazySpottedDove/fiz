@@ -2,14 +2,18 @@
 import { invoke } from '@tauri-apps/api/core';
 import Layout from '../components/Layout.vue';
 import { useConfigStore } from '../stores';
-import { ref } from 'vue';
+import { ref,onMounted } from 'vue';
+import Swal from 'sweetalert2';
 
 const configStore = useConfigStore();
+const config = ref({});
 // 初始化一个局部 reactive 对象，用于双向绑定编辑配置
-const config = ref({
-    courseware_dir: configStore.config.courseware_dir,
-    exp: configStore.config.exp,
-    accept_mp4: configStore.config.accept_mp4
+onMounted(() => {
+    config.value = {
+        courseware_dir: configStore.config.courseware_dir,
+        exp: configStore.config.exp,
+        accept_mp4: configStore.config.accept_mp4
+    };
 });
 
 // 保存配置到 store
@@ -17,7 +21,11 @@ function saveConfig() {
     // 复制配置到全局 store 中
     configStore.config = { ...config.value };
     invoke('update_config', { courseware_dir: configStore.config.courseware_dir, exp: configStore.config.exp, accept_mp4: configStore.config.accept_mp4 });
-    alert('配置已保存');
+    Swal.fire({
+        icon: 'success',
+        title: '配置已保存',
+        timer: 1500,
+    })
 }
 </script>
 

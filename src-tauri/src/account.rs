@@ -115,7 +115,7 @@ impl Session {
             );
             res_home?;
             res_zdbk?;
-            let res_eta = res_eta?;
+            res_eta?;
             account.valid = true;
             return Ok(());
         }
