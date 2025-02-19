@@ -1,13 +1,14 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { useMaterialStore, useCourseStore, useGradeStore, useConfigStore, useHomeworkStore } from './stores';
+import { useMaterialStore, useCourseStore, useGradeStore, useConfigStore, useHomeworkStore, useTestStore } from './stores';
 import Swal from 'sweetalert2';
 const courseStore = useCourseStore();
 const gradeStore = useGradeStore();
 const materialStore = useMaterialStore();
 const configStore = useConfigStore();
 const homeworkStore = useHomeworkStore();
+const testStore = useTestStore();
 listen("courses-inited", (event) => {
     courseStore.setCourses(event.payload);
 });
@@ -25,28 +26,50 @@ listen("homeworks-inited", (event) => {
     homeworkStore.setHomeworks(event.payload);
 });
 listen("login-success", (event) => {
-    const coursesPromise = invoke("get_courses");
+    const semesterPromise = invoke("get_semesters");
+
     const gradesPromise = invoke("get_grades_and_analysis");
-    coursesPromise.then((courses) => {
-        courseStore.setCourses(courses);
-        const materialsPromise = invoke("get_materials");
-        const homeworksPromise = invoke("get_homeworks");
-        materialsPromise.then((materials) => {
-            materialStore.setMaterials(materials);
+    semesterPromise.then(() => {
+        const coursesPromise = invoke("get_courses");
+        const testsPromise = invoke("get_tests");
+        coursesPromise.then((courses) => {
+            courseStore.setCourses(courses);
+            const materialsPromise = invoke("get_materials");
+            const homeworksPromise = invoke("get_homeworks");
+            materialsPromise.then((materials) => {
+                materialStore.setMaterials(materials);
+            }).catch((error) => {
+                Swal.fire({
+                    icon: 'error',
+                    title: '获取课件失败',
+                    timer: 1500,
+                    text: error,
+                });
+            });
+            homeworksPromise.then((homeworks) => {
+                homeworkStore.setHomeworks(homeworks);
+            }).catch((error) => {
+                Swal.fire({
+                    icon: 'error',
+                    title: '获取作业失败',
+                    timer: 1500,
+                    text: error,
+                });
+            });
         }).catch((error) => {
             Swal.fire({
                 icon: 'error',
-                title: '获取课件失败',
+                title: '获取课程信息失败',
                 timer: 1500,
                 text: error,
             });
         });
-        homeworksPromise.then((homeworks) => {
-            homeworkStore.setHomeworks(homeworks);
+        testsPromise.then((tests) => {
+            testStore.setTests(tests);
         }).catch((error) => {
             Swal.fire({
                 icon: 'error',
-                title: '获取作业失败',
+                title: '获取考试信息失败',
                 timer: 1500,
                 text: error,
             });
@@ -54,7 +77,7 @@ listen("login-success", (event) => {
     }).catch((error) => {
         Swal.fire({
             icon: 'error',
-            title: '获取课程信息失败',
+            title: '获取学期信息失败',
             timer: 1500,
             text: error,
         });

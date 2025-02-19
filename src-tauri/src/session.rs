@@ -13,7 +13,6 @@ use std::sync::Arc;
 pub const MAX_RETRIES: usize = 3;
 pub const HOME_URL: &str = "https://courses.zju.edu.cn";
 pub const PUBKEY_URL: &str = "https://zjuam.zju.edu.cn/cas/v2/getPubKey";
-pub const GRADER_URL: &str = "http://appservice.zju.edu.cn/zdjw/cjcx/cjcxjg";
 pub const LOGIN_URL: &str = "https://zjuam.zju.edu.cn/cas/login";
 
 lazy_static! {

@@ -310,8 +310,6 @@ pub async fn query_file(app: AppHandle) -> Result<Option<PathBuf>, String> {
         "rtf", "zip", "rar", "tar", "mat", "dwg", "m", "mlapp", "slx", "mlx",
     ];
     use tauri_plugin_dialog::DialogExt;
-    println!("try upload");
-
     let (sender, receiver) = oneshot::channel();
     app.dialog()
         .file()

@@ -1,15 +1,15 @@
-use crate::account::ACCOUNT;
+use crate::account::{ACCOUNT, ETA_URL};
 use crate::session::SESSION;
-use crate::session::{Session, GRADER_URL, MAX_RETRIES};
+use crate::session::{Session, MAX_RETRIES};
 use crate::utils::{Load, Store, CONFIG_DIR};
 use anyhow::Result;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter};
-const GRADE_URL: &str = "http://appservice.zju.edu.cn/zju-smartcampus/zdydjw/api/kkqk_cxXscjxx";
+const ETA_GRADE_URL: &str = "http://eta.zju.edu.cn/zftal-xgxt-web/api/teacher/xshx/getKccjList.zf";
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Grade {
     pub name: String,
@@ -126,25 +126,23 @@ impl Store for Vec<Grade> {
 }
 impl Session {
     pub async fn get_grades(&self) -> Result<()> {
-        let form = json!({
-            "xh": ACCOUNT.lock().unwrap().as_ref().unwrap().stuid,
-        });
+        let stuid = ACCOUNT.lock().unwrap().as_ref().unwrap().stuid.clone();
+        let url = format!("{ETA_GRADE_URL}?xh={stuid}&currentPage=1&showCount=200&xn=&xq=&kcmc=&orders=%5B%5D&sfjg=");
         let mut grades = Vec::new();
         for retry in 1..=MAX_RETRIES {
-            let res = self.client.post(GRADE_URL).form(&form).send().await?;
-            let json = res.json::<Value>().await?;
-            match json["data"]["list"].as_array() {
+            let res = self.client.get(&url).send().await?;
+            let Ok(json) = res.json::<Value>().await else {
+                continue;
+            };
+            match json["data"]["items"].as_array() {
                 Some(grades_json) => {
                     for grade_json in grades_json {
-                        let grade = grade_json["cj"].as_str().unwrap().to_string();
-                        if grade == "弃修" {
-                            continue;
-                        }
-                        let name = grade_json["kcmc"].as_str().unwrap().to_string();
-                        let credit = grade_json["xf"].as_str().unwrap().to_string();
-                        let gpa = grade_json["jd"].as_f64().unwrap();
-                        let xq = grade_json["xq"].as_str().unwrap().to_string();
-                        let xn = grade_json["xn"].as_str().unwrap().to_string();
+                        let grade = grade_json["CJ"].as_u64().unwrap().to_string();
+                        let name = grade_json["KCMC"].as_str().unwrap().to_string();
+                        let credit = grade_json["XF"].as_str().unwrap().to_string();
+                        let gpa = grade_json["JD"].as_str().unwrap().parse::<f64>().unwrap();
+                        let xq = grade_json["XQ"].as_str().unwrap().to_string();
+                        let xn = grade_json["XN"].as_str().unwrap().to_string();
                         grades.push(Grade::new(name, grade, credit, gpa, xq, xn));
                     }
                     break;
@@ -153,7 +151,7 @@ impl Session {
                     if retry == MAX_RETRIES {
                         return Err(anyhow::anyhow!("获取成绩失败"));
                     }
-                    self.client.get(GRADER_URL).send().await?;
+                    self.client.get(ETA_URL).send().await?;
                 }
             }
         }

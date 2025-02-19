@@ -12,6 +12,10 @@
         "text":"成绩"
     },
     {
+        "href":"/test",
+        "text":"考试"
+    },
+    {
         "href":"/login",
         "text":"登出"
     },

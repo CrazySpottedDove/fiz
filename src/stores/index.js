@@ -68,3 +68,16 @@ export const useHomeworkStore = defineStore('homework', {
         }
     }
 })
+
+export const useTestStore = defineStore('test', {
+    state: () => {
+        return {
+            tests: []
+        }
+    },
+    actions: {
+        setTests(tests) {
+            this.tests = tests;
+        }
+    }
+})

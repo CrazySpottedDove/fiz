@@ -6,6 +6,7 @@ import Grade from '../views/Grade.vue';
 import CoursewareDetail from '../views/CoursewareDetail.vue';
 import Setting from '../views/Setting.vue';
 import Init from '../views/Init.vue';
+import Test from '../views/Test.vue';
 const routes = [
     {
         path:'/',
@@ -42,6 +43,10 @@ const routes = [
         path: '/setting',
         name: 'Setting',
         component: Setting
+    },{
+        path:'/test',
+        name:'Test',
+        component: Test
     }
 ];
 

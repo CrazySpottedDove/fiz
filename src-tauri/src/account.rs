@@ -1,4 +1,4 @@
-use crate::session::{Session, GRADER_URL, HOME_URL, LOGIN_URL, MAX_RETRIES, PUBKEY_URL, SESSION};
+use crate::session::{Session, HOME_URL, LOGIN_URL, MAX_RETRIES, PUBKEY_URL, SESSION};
 use crate::utils::{rsa_no_padding, Store, CONFIG_DIR};
 use anyhow::{anyhow, Result};
 use futures::join;
@@ -8,6 +8,8 @@ use serde_json::Value;
 use std::fs;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter};
+const ZDBK_URL :&str="https://zjuam.zju.edu.cn/cas/login?service=http://zdbk.zju.edu.cn/jwglxt/xtgl/login_ssologin.html";
+pub const ETA_URL: &str = "http://eta.zju.edu.cn/index/student";
 lazy_static! {
     // 用Mutex包装，这样可以获取可变引用进行修改
     pub static ref ACCOUNT: Mutex<Option<Account>> = Mutex::new(load_account());
@@ -106,25 +108,30 @@ impl Session {
                 continue;
             }
 
-            let (res_home, res_grader) = join!(
+            let (res_home, res_zdbk, res_eta) = join!(
                 self.client.get(HOME_URL).send(),
-                self.client.get(GRADER_URL).send()
+                self.client.get(ZDBK_URL).send(),
+                self.client.get(ETA_URL).send(),
             );
             res_home?;
-            res_grader?;
+            res_zdbk?;
+            let res_eta = res_eta?;
             account.valid = true;
             return Ok(());
         }
         Ok(())
     }
     pub async fn login(&self, account: &mut Account) -> Result<()> {
-        let (res_home, res_grader) = join!(
+        let (res_home, res_zdbk, res_eta) = join!(
             self.client.get(HOME_URL).send(),
-            self.client.get(GRADER_URL).send()
+            self.client.get(ZDBK_URL).send(),
+            self.client.get(ETA_URL).send(),
         );
         let res_home = res_home?;
-        let res_grader = res_grader?;
-        if res_home.url().query() == None && res_grader.url().query() == None {
+        res_zdbk?;
+        res_eta?;
+
+        if res_home.url().query() == None {
             account.valid = true;
             return Ok(());
         }
@@ -168,6 +175,5 @@ pub async fn relogin(stuid: String, password: String, app: AppHandle) -> Result<
     let mut account_guard = ACCOUNT.lock().map_err(|e| e.to_string())?;
     *account_guard = Some(account);
     app.emit("login-success", ()).map_err(|e| e.to_string())?;
-    println!("Relogin success");
     Ok(())
 }

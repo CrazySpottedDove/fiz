@@ -25,28 +25,11 @@ impl Semester {
         }
     }
     pub fn parse_name(&self) -> (String, String) {
-        let year = self.name[0..4].to_string();
+        let year = self.name[0..9].to_string();
         let term = self.name[9..].to_string();
         (year, term)
     }
 }
-
-// impl Load for Vec<Semester> {
-//     fn load() -> Self {
-//         let semesters_dir = CONFIG_DIR.join("semesters.json");
-//         if semesters_dir.exists() {
-//             let Ok(reader) = std::fs::File::open(semesters_dir) else {
-//                 return Self::new();
-//             };
-//             let Ok(semesters) = serde_json::from_reader(reader) else {
-//                 return Self::new();
-//             };
-//             semesters
-//         } else {
-//             Self::new()
-//         }
-//     }
-// }
 
 lazy_static! {
     pub static ref SEMESTERS: Mutex<Vec<Semester>> = Mutex::new(Vec::new());
@@ -67,7 +50,7 @@ impl Session {
                 let id = item["id"].as_u64().unwrap();
                 let name = item["name"].as_str().unwrap().to_string();
                 if is_active && ["春夏", "秋冬", "短"].contains(&&name[9..]) {
-                    year = name[0..4].to_string();
+                    year = name[0..9].to_string();
                     term = name[9..].to_string();
                 }
                 Semester::new(id, name, is_active)
@@ -91,14 +74,6 @@ impl Session {
     }
 }
 
-// impl Store for Vec<Semester> {
-//     fn store(&self) -> Result<(), String> {
-//         let semesters_dir = CONFIG_DIR.join("semesters.json");
-//         let semesters_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-//         std::fs::write(semesters_dir, semesters_str).map_err(|e| e.to_string())?;
-//         Ok(())
-//     }
-// }
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Course {
     pub id: u64,
@@ -181,8 +156,14 @@ pub fn init_courses(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn get_courses() -> Result<Vec<Course>, String> {
+pub async fn get_semesters()->Result<(),String>{
     SESSION.get_semesters().await.map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn get_courses() -> Result<Vec<Course>, String> {
+
     SESSION.get_courses().await.map_err(|e| e.to_string())?;
     for course in COURSES.lock().unwrap().iter_mut() {
         for semester in SEMESTERS.lock().unwrap().iter() {
