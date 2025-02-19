@@ -50,6 +50,7 @@ const loading = ref(false);
 const fetch = async (reference_id, name) => {
     try {
         invoke('fetch_upload', { reference_id: reference_id, name: name, title: props.title });
+        
     } catch (e) {
         window.alert(`下载${name}失败：${e}`);
     }

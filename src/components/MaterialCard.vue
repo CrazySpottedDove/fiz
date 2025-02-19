@@ -7,7 +7,7 @@
             </h1>
         </div>
         <br>
-        <UploadsCard :uploads="uploads" :title="materialName" />
+        <UploadsCard :uploads="uploads" :title="title" />
     </li>
     <br>
 </template>
@@ -16,6 +16,7 @@
 import { ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import UploadsCard from './UploadsCard.vue';
+import Swal from 'sweetalert2';
 const props = defineProps({
     materialName: String,
     uploads: Array,
@@ -29,6 +30,13 @@ const loading = ref(false);
 const fetch = async (reference_id, name) => {
     try {
         invoke('fetch_upload', { reference_id: reference_id, name: name, title: props.title });
+        Swal.fire({
+            title: `添加下载任务: ${name}`,
+            icon: 'success',
+            showConfirmButton: false,
+            position:'top',
+            timer: 1500
+        });
     } catch (e) {
         window.alert(`下载${name}失败：${e}`);
     }
