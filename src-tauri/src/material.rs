@@ -139,7 +139,12 @@ impl Session {
             let chunk = chunk?;
             file.write_all(&chunk).await?;
         }
-        RECORD.lock().unwrap().push(reference_id);
+        {
+            let mut record = RECORD.lock().unwrap();
+            if !record.contains(&reference_id) {
+                record.push(reference_id);
+            }
+        }
         Ok(())
     }
 }

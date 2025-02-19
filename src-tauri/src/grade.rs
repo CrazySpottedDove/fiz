@@ -137,6 +137,9 @@ impl Session {
             match json["data"]["items"].as_array() {
                 Some(grades_json) => {
                     for grade_json in grades_json {
+                        if !grade_json["BZ"].is_null() && grade_json["BZ"].as_str().unwrap() == "弃修" {
+                            continue;
+                        }
                         let grade = grade_json["CJ"].as_u64().unwrap().to_string();
                         let name = grade_json["KCMC"].as_str().unwrap().to_string();
                         let credit = grade_json["XF"].as_str().unwrap().to_string();
