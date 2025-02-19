@@ -128,12 +128,7 @@ impl Session {
         Ok(())
     }
 
-    pub async fn fetch_upload(
-        &self,
-        reference_id: u64,
-        title: String,
-        name: String,
-    ) -> Result<()> {
+    pub async fn fetch_upload(&self, reference_id: u64, title: String, name: String) -> Result<()> {
         let url = format!("https://courses.zju.edu.cn/api/uploads/reference/{reference_id}/blob");
         let res = self.client.get(url).send().await?;
         let path = CONFIG.read().unwrap().courseware_dir.join(title);

@@ -1,4 +1,4 @@
-use crate::session::{Session,SESSION};
+use crate::session::{Session, SESSION};
 use anyhow::{anyhow, Result};
 use base64::Engine;
 use reqwest::header::CONTENT_TYPE;
@@ -8,7 +8,9 @@ impl Session {
         let url = format!("https://courses.zju.edu.cn/api/uploads/reference/document/{reference_id}/url?preview=true");
         let res = self.client.get(url).send().await?;
         let json = res.json::<Value>().await?;
-        let url = json["url"].as_str().ok_or(anyhow!("预览请求返回无 url 字段"));
+        let url = json["url"]
+            .as_str()
+            .ok_or(anyhow!("预览请求返回无 url 字段"));
         let res = self.client.get(url?).send().await?;
         let headers = res.headers().clone();
         let content_type = headers
@@ -21,7 +23,10 @@ impl Session {
     }
 }
 
-#[tauri::command(rename_all="snake_case")]
-pub async fn get_preview(reference_id: u64) -> Result<(String, String),String> {
-    SESSION.get_preview(reference_id).await.map_err(|e| e.to_string())
+#[tauri::command(rename_all = "snake_case")]
+pub async fn get_preview(reference_id: u64) -> Result<(String, String), String> {
+    SESSION
+        .get_preview(reference_id)
+        .await
+        .map_err(|e| e.to_string())
 }

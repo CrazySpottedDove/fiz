@@ -194,5 +194,3 @@ pub async fn get_courses() -> Result<Vec<Course>, String> {
     }
     Ok(COURSES.lock().unwrap().clone())
 }
-
-

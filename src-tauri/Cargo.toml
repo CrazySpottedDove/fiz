@@ -26,7 +26,7 @@ lazy_static = "1.5.0"
 anyhow = "1.0.95"
 cookie_store = "0.21.1"
 reqwest_cookie_store = "0.8.0"
-reqwest = { version = "0.12.12", features = ["json", "stream"] }
+reqwest = { version = "0.12.12", features = ["json", "stream", "multipart"] }
 regex = "1.11.1"
 num = "0.4.3"
 tokio = { version = "1.43.0" }
@@ -34,6 +34,7 @@ futures = "0.3.31"
 percent-encoding = "2.3.1"
 base64 = "0.22.1"
 chrono = "0.4.39"
+tauri-plugin-dialog = "2"
 [profile.release]
 opt-level = 3       # 启用最高级别优化（-O3），尽可能提取性能
 lto = "fat"         # 使用全量 LTO，允许跨模块全局优化

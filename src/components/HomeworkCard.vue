@@ -8,7 +8,12 @@
             </h1>
             <p>{{ homework.ddl }}</p>
         </div>
-        <div v-html="homework.description" class="description mt-2"></div>
+        <div class="flex justify-between items-center w-full">
+            <div v-html="homework.description" class="description mt-2"></div>
+            <div class="active:text-blue-600 dark:text-cyan-600 cursor-pointer hover:text-cyan-400"
+                @click="submit(homework.id)">提交</div>
+        </div>
+
         <br>
         <UploadsCard :uploads="homework.uploads" :title="homework.course" />
     </li>
@@ -16,16 +21,65 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import UploadsCard from './UploadsCard.vue';
+import { invoke } from '@tauri-apps/api/core';
+import Swal from 'sweetalert2';
 const props = defineProps({
     homework: Object,
 });
+const submitting = ref(false);
+function submit(id) {
+    const queryFilePromise = invoke('query_file')
+    queryFilePromise.then((file_path) => {
+        if (file_path === null) {
+            return;
+        }
+        const submitFilePromise = invoke('submit_file',{file_path: file_path});
+        const comment = window.prompt("请输入备注(可不输入)") || "";
+        submitFilePromise.then((file_id) => {
+            submitting.value = true;
+            const submitPromise = invoke('submit_homework', { homework_id: id, file_id: file_id, comment: comment });
+            submitPromise.then(() => {
+                submitting.value = false;
+                Swal.fire({
+                    icon: 'success',
+                    title: '提交成功',
+                    timer: 1500,
+                })
+            }).catch((e) => {
+                submitting.value = false;
+                Swal.fire({
+                    icon: 'error',
+                    title: '提交失败',
+                    timer: 2000,
+                    text: e,
+                })
+            })
+        }).catch((e) => {
+            submitting.value = false;
+            Swal.fire({
+                icon: 'error',
+                title: '上传文件失败',
+                timer: 2000,
+                text: e,
+            })
+        })
 
+    }).catch((e) => {
+        Swal.fire({
+            icon: 'error',
+            title: '获取文件路径失败',
+            timer: 2000,
+            text: e,
+        })
+    })
+}
 
 </script>
 <style scoped>
 .description * {
-    color:inherit !important;
-    font-size:inherit !important;
+    color: inherit !important;
+    font-size: inherit !important;
 }
 </style>

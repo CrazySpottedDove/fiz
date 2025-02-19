@@ -1,15 +1,16 @@
 mod account;
 mod courseware;
 mod grade;
+mod homework;
 mod material;
 mod preview;
 mod session;
 mod utils;
-mod homework;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::CloseRequested { api, .. } => {
                 if let Err(e) = utils::store() {
@@ -36,6 +37,9 @@ pub fn run() {
             material::fetch_upload,
             homework::init_homeworks,
             homework::get_homeworks,
+            homework::submit_homework,
+            homework::submit_file,
+            homework::query_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

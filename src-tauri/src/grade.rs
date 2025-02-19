@@ -1,6 +1,6 @@
 use crate::account::ACCOUNT;
 use crate::session::SESSION;
-use crate::session::{Session, MAX_RETRIES, GRADER_URL};
+use crate::session::{Session, GRADER_URL, MAX_RETRIES};
 use crate::utils::{Load, Store, CONFIG_DIR};
 use anyhow::Result;
 use lazy_static::lazy_static;
