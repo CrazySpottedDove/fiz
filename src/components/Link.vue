@@ -26,6 +26,7 @@ const props = defineProps({
 });
 
 const { text, addClass, href, ...restProps } = toRefs(props);
+import { openUrl } from '@tauri-apps/plugin-opener';
 const route = useRoute();
 
 const isActive = computed(() => {
@@ -37,7 +38,7 @@ const isActive = computed(() => {
         return route.path.includes(href.value);
     }
 });
-const handleChangeRoute = () => {
+async function handleChangeRoute(){
     if (text.value === "登出") {
         Swal.fire({
             title: '确认登出?',
@@ -52,6 +53,18 @@ const handleChangeRoute = () => {
                 router.push(href.value);
             }
         });
+    } else if (text.value === "最新仓库") {
+        try {
+            await openUrl(href.value);
+        } catch (e) {
+            console.error("打开链接错误：", e);
+            Swal.fire({
+                icon: 'error',
+                title: '打开链接失败',
+                text: e.message,
+                timer: 1500,
+            });
+        }
     } else {
         router.push(href.value);
     }

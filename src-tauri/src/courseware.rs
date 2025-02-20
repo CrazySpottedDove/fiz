@@ -156,14 +156,13 @@ pub fn init_courses(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn get_semesters()->Result<(),String>{
+pub async fn get_semesters() -> Result<(), String> {
     SESSION.get_semesters().await.map_err(|e| e.to_string())?;
     Ok(())
 }
 
 #[tauri::command]
 pub async fn get_courses() -> Result<Vec<Course>, String> {
-
     SESSION.get_courses().await.map_err(|e| e.to_string())?;
     for course in COURSES.lock().unwrap().iter_mut() {
         for semester in SEMESTERS.lock().unwrap().iter() {

@@ -22,5 +22,9 @@
     {
         "href":"/setting",
         "text":"设置"
+    },
+    {
+        "href":"https://github.com/CrazySpottedDove/fiz/releases/latest",
+        "text":"最新仓库"
     }
 ]
