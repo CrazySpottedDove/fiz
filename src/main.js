@@ -8,16 +8,15 @@ import "./styles/tailwind.css";
 async function initializeApp() {
     try {
         await invoke('check_dir');
+        invoke('init_config').catch(err => window.alert(`初始化配置失败：${err}`));
         const account_ready = await invoke('check_account');
         if (account_ready) {
             router.push('/todo');
             invoke('init_homeworks').catch(err => window.alert(`初始化作业失败：${err}`));
             invoke('init_courses').catch(err => window.alert(`初始化课程失败：${err}`));
             invoke('init_grades_and_analysis').catch(err => window.alert(`初始化成绩和分析失败：${err}`));
-            invoke('init_config').catch(err => window.alert(`初始化配置失败：${err}`));
             invoke('login').catch(err => window.alert(`登录失败：${err}`));
         } else {
-            console.log('账号未登录');
             router.push('/login');
         }
     } catch (error) {

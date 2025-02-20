@@ -2,18 +2,27 @@
 import { invoke } from '@tauri-apps/api/core';
 import Layout from '../components/Layout.vue';
 import { useConfigStore } from '../stores';
-import { ref,onMounted } from 'vue';
+import { ref,onMounted, watch } from 'vue';
 import Swal from 'sweetalert2';
 
 const configStore = useConfigStore();
 const config = ref({});
 // 初始化一个局部 reactive 对象，用于双向绑定编辑配置
 onMounted(() => {
-    config.value = {
-        courseware_dir: configStore.config.courseware_dir,
-        exp: configStore.config.exp,
-        accept_mp4: configStore.config.accept_mp4
-    };
+    watch(
+        () => configStore.config,
+        (newConfig) => {
+            console.log(newConfig);
+            if (newConfig && Object.keys(newConfig).length > 0) {
+                config.value = {
+                    courseware_dir: newConfig.courseware_dir,
+                    exp: newConfig.exp,
+                    accept_mp4: newConfig.accept_mp4
+                };
+            }
+        },
+        { immediate: true }
+    );
 });
 
 // 保存配置到 store

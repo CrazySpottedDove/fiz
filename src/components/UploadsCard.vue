@@ -43,14 +43,22 @@ const props = defineProps({
     uploads: Array,
     title: String,
 });
-const showPreview = ref(false); // 控制模态框显示
-const previewData = ref(''); // 预览数据（Base64 或 URL）
-const previewType = ref(''); // 文件类型（image/pdf/video）
+const showPreview = ref(false);
+const previewData = ref('');
+const previewType = ref('');
 const loading = ref(false);
+import Swal from 'sweetalert2';
 const fetch = async (reference_id, name) => {
     try {
         invoke('fetch_upload', { reference_id: reference_id, name: name, title: props.title });
-        
+        Swal.fire({
+            title: `添加下载任务`,
+            html: `<div>${name}</div>`,
+            icon: 'success',
+            showConfirmButton: false,
+            position: 'top',
+            timer: 1000
+        });
     } catch (e) {
         window.alert(`下载${name}失败：${e}`);
     }
@@ -82,7 +90,6 @@ async function preview(reference_id) {
             console.log(previewData.value);
             previewType.value = 'pdf';
         } else {
-            console.error('不支持的文件类型:', contentType);
             return;
         }
 
