@@ -82,3 +82,15 @@ export const useTestStore = defineStore('test', {
     }
 })
 
+export const useStateStore = defineStore('state', {
+    state: () => {
+        return {
+            login: false
+        }
+    },
+    actions: {
+        setLogin(login) {
+            this.login = login;
+        }
+    }
+})

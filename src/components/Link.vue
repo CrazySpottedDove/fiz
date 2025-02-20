@@ -17,6 +17,8 @@ import { useRoute } from 'vue-router';
 import { toRefs } from 'vue';
 import router from '../router';
 import Swal from 'sweetalert2';
+import { useStateStore } from '../stores';
+const stateStore = useStateStore();
 const props = defineProps({
     text: String,
     addClass: String,
@@ -46,6 +48,7 @@ const handleChangeRoute = () => {
         }).then((result) => {
             if (result.isConfirmed) {
                 // 执行登出操作
+                stateStore.setLogin(false);
                 router.push(href.value);
             }
         });
