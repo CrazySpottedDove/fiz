@@ -21,11 +21,9 @@ listen("materials-inited", (event) => {
 });
 listen("config-inited", (event) => {
     configStore.setConfig(event.payload);
-    console.log(configStore.config);
 });
 listen("homeworks-inited", (event) => {
     homeworkStore.setHomeworks(event.payload);
-    console.log(homeworkStore.homeworks);
 });
 listen("login-success", (event) => {
     const semesterPromise = invoke("get_semesters");

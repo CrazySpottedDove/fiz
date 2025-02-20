@@ -20,7 +20,7 @@ async function initializeApp() {
             router.push('/login');
         }
     } catch (error) {
-        console.error(`初始化失败：${error}`);
+        window.alert(`初始化失败：${error}`);
         router.push('/login');
     }
 }

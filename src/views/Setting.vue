@@ -12,7 +12,6 @@ onMounted(() => {
     watch(
         () => configStore.config,
         (newConfig) => {
-            console.log(newConfig);
             if (newConfig && Object.keys(newConfig).length > 0) {
                 config.value = {
                     courseware_dir: newConfig.courseware_dir,
