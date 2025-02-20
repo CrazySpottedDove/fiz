@@ -135,10 +135,12 @@ impl Session {
                 let id = item["id"].as_u64().unwrap();
                 let name = item["name"].as_str().unwrap().to_string();
                 let semester_id = item["semester_id"].as_u64().unwrap();
-                let time = item["course_attributes"]["teaching_class_name"]
-                    .as_str()
-                    .unwrap()
-                    .to_string();
+                let time = &item["course_attributes"]["teaching_class_name"];
+                let time = if time.is_null() {
+                    String::new()
+                } else {
+                    time.as_str().unwrap().to_string()
+                };
                 Course::new(id, name, false, semester_id, time)
             })
             .collect::<Vec<Course>>();
