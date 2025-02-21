@@ -115,7 +115,9 @@ impl Session {
             );
             res_home?;
             res_zdbk?;
-            res_eta?;
+            if let Err(_) = res_eta {
+                println!("ETA_URL: {}", ETA_URL);
+            };
             account.valid = true;
             return Ok(());
         }
@@ -129,7 +131,9 @@ impl Session {
         );
         let res_home = res_home?;
         res_zdbk?;
-        res_eta?;
+        if let Err(_) = res_eta {
+            println!("ETA_URL: {}", ETA_URL);
+        };
 
         if res_home.url().query() == None {
             account.valid = true;
