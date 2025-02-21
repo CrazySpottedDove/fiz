@@ -8,7 +8,8 @@ use futures::{future::join_all, StreamExt};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
+use tauri_plugin_opener::OpenerExt;
+use std::{collections::HashMap, os::fd::AsFd};
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 use tokio::{fs::File, io::AsyncWriteExt};
@@ -128,12 +129,12 @@ impl Session {
         Ok(())
     }
 
-    pub async fn fetch_upload(&self, reference_id: u64, title: String, name: String) -> Result<()> {
+    pub async fn fetch_upload(&self, reference_id: u64, title: String, name: String, app:AppHandle) -> Result<()> {
         let url = format!("https://courses.zju.edu.cn/api/uploads/reference/{reference_id}/blob");
         let res = self.client.get(url).send().await?;
         let path = CONFIG.read().unwrap().courseware_dir.join(title);
         std::fs::create_dir_all(&path)?;
-        let mut file = File::create(path.join(name)).await?;
+        let mut file = File::create(path.join(&name)).await?;
         let mut stream = res.bytes_stream();
         while let Some(chunk) = stream.next().await {
             let chunk = chunk?;
@@ -145,6 +146,7 @@ impl Session {
                 record.push(reference_id);
             }
         }
+        app.opener().open_path(path.join(name).to_str().unwrap(), None::<&str>).unwrap();
         Ok(())
     }
 }
@@ -194,10 +196,10 @@ impl Load for Vec<u64> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn fetch_upload(reference_id: u64, title: String, name: String) -> Result<(), String> {
+pub async fn fetch_upload(app:AppHandle,reference_id: u64, title: String, name: String) -> Result<(), String> {
     {
         SESSION
-            .fetch_upload(reference_id, title, name)
+            .fetch_upload(reference_id, title, name,app)
             .await
             .map_err(|e| e.to_string())?;
     }
