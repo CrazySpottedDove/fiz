@@ -10,7 +10,7 @@
             </div>
             <div class="flex flex-col flex-2 pr-4">
                 <h1 :class="gpaClass" class="text-xl font-bold [word-break:break-word]">
-                    {{ `${gpa.toFixed(2)} / ${credit}` }}
+                    {{ `${gpa.toFixed(2)} / ${credit.toFixed(1)}` }}
                 </h1>
             </div>
         </div>

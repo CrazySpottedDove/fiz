@@ -13,7 +13,6 @@
             <div class="active:text-blue-600 dark:text-cyan-600 cursor-pointer hover:text-cyan-400 min-w-9"
                 @click="submit(homework.id)">提交</div>
         </div>
-
         <br>
         <UploadsCard :uploads="homework.uploads" :title="homework.course" />
     </li>
