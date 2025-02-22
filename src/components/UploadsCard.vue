@@ -57,7 +57,8 @@ const fetch = async (reference_id, name) => {
             icon: 'success',
             showConfirmButton: false,
             position: 'top',
-            timer: 1000
+            timer: 1000,
+            toast: true,
         });
     } catch (e) {
         window.alert(`下载${name}失败：${e}`);

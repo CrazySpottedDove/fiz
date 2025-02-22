@@ -10,7 +10,7 @@
         </div>
         <div class="flex justify-between items-center w-full">
             <div v-html="homework.description" class="description mt-2"></div>
-            <div class="active:text-blue-600 dark:text-cyan-600 cursor-pointer hover:text-cyan-400"
+            <div class="active:text-blue-600 dark:text-cyan-600 cursor-pointer hover:text-cyan-400 min-w-9"
                 @click="submit(homework.id)">提交</div>
         </div>
 
