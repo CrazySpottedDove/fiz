@@ -19,29 +19,17 @@ async function handleUpdate() {
         });
 
         if (result.isConfirmed) {
-            // 安装更新
-            let downloaded = 0;
-            let contentLength = 0;
-            // alternatively we could also call update.download() and update.install() separately
-            await update.downloadAndInstall((event) => {
-                switch (event.event) {
-                    case 'Started':
-                        contentLength = event.data.contentLength;
-                        console.log(`started downloading ${event.data.contentLength} bytes`);
-                        break;
-                    case 'Progress':
-                        downloaded += event.data.chunkLength;
-                        console.log(`downloaded ${downloaded} from ${contentLength}`);
-                        break;
-                    case 'Finished':
-                        console.log('download finished');
-                        break;
+            Swal.fire({
+                title: "正在下载更新...",
+                html: "请稍候...",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
             });
+            await update.downloadAndInstall();
             await relaunch();
         }
-    }else{
-        console.log("没有发现新版本");
     }
 }
 
