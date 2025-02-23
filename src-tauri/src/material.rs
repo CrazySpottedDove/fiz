@@ -11,7 +11,6 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter};
-use tauri_plugin_opener::OpenerExt;
 use tokio::{fs::File, io::AsyncWriteExt};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Upload {
@@ -134,7 +133,6 @@ impl Session {
         reference_id: u64,
         title: String,
         name: String,
-        app: AppHandle,
     ) -> Result<()> {
         let url = format!("https://courses.zju.edu.cn/api/uploads/reference/{reference_id}/blob");
         let res = self.client.get(url).send().await?;
@@ -152,9 +150,6 @@ impl Session {
                 record.push(reference_id);
             }
         }
-        app.opener()
-            .open_path(path.join(name).to_str().unwrap(), None::<&str>)
-            .unwrap();
         Ok(())
     }
 }
@@ -205,14 +200,13 @@ impl Load for Vec<u64> {
 
 #[tauri::command(rename_all = "snake_case")]
 pub async fn fetch_upload(
-    app: AppHandle,
     reference_id: u64,
     title: String,
     name: String,
 ) -> Result<(), String> {
     {
         SESSION
-            .fetch_upload(reference_id, title, name, app)
+            .fetch_upload(reference_id, title, name)
             .await
             .map_err(|e| e.to_string())?;
     }
