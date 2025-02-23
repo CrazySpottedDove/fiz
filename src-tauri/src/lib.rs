@@ -7,6 +7,7 @@ mod preview;
 mod session;
 mod test;
 mod utils;
+mod watch;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -45,6 +46,9 @@ pub fn run() {
             homework::query_file,
             test::get_tests,
             courseware::get_semesters,
+            watch::get_watches,
+            watch::init_watches,
+            watch::set_watches
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

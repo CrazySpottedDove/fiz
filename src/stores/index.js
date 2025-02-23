@@ -4,11 +4,15 @@ export const useCourseStore = defineStore('course', {
     state: () => {
         return {
             courses: [],
+            watches: [],
         }
     },
     actions: {
         setCourses(courses) {
             this.courses = courses;
+        },
+        setWatches(watches) {
+            this.watches = watches;
         }
     }
 })

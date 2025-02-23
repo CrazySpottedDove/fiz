@@ -8,10 +8,11 @@
         </div>
         <ul class="grid grid-cols-2 gap-4">
             <CourseCard v-for="course in activeCourses" :key="course.id" class="dark:text-indigo-100"
-                :name="course.name" :time="course.time" :id="course.id" />
+                :name="course.name" :time="course.time" :id="course.id" :watched="watched(course.id)" />
             <!-- 根据开关显示非激活课程 -->
             <CourseCard v-if="showInactive" v-for="course in inactiveCourses" :key="course.id"
-                class="dark:text-indigo-100" :name="course.name" :time="course.time" :id="course.id" />
+                class="dark:text-indigo-100" :name="course.name" :time="course.time" :id="course.id"
+                :watched="watched(course.id)" />
         </ul>
 
     </Layout>
@@ -25,6 +26,7 @@ import { useCourseStore } from "../stores";
 
 const courseStore = useCourseStore();
 const courses = courseStore.courses;
+const watches = courseStore.watches;
 // 定义是否显示非激活课程的开关
 const showInactive = ref(false);
 
@@ -36,8 +38,11 @@ const activeCourses = computed(() => {
 const inactiveCourses = computed(() => {
     return courses.filter(course => !course.is_active);
 });
+const watched = (id) => watches.find(w => w.id === id)
+
 // 切换显示状态
 const toggleInactive = () => {
     showInactive.value = !showInactive.value;
 };
+
 </script>

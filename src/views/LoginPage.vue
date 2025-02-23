@@ -28,7 +28,6 @@ import LoginLayout from '../components/LoginLayout.vue';
 import { ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { useRouter } from 'vue-router';
-import { listen } from '@tauri-apps/api/event';
 const stuid = ref('')
 const password = ref('')
 const showPassword = ref(false);

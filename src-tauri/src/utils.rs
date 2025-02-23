@@ -4,6 +4,7 @@ use crate::grade::{ANALYSIS, GRADES};
 use crate::homework::HOMEWORKS;
 use crate::material::{MATERIALS, RECORD};
 use crate::session::SESSION;
+use crate::watch::WATCHES;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -99,6 +100,7 @@ pub fn store() -> Result<(), String> {
     MATERIALS.lock().unwrap().store()?;
     RECORD.lock().unwrap().store()?;
     HOMEWORKS.lock().unwrap().store()?;
+    WATCHES.lock().unwrap().store()?;
     Ok(())
 }
 

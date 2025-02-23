@@ -29,8 +29,7 @@ onMounted(() => {
         materials.value = materialStore.materials[courseId] || [];
     });
 });
-const sortedMaterials = computed(() => {
+const sortedMaterials = computed(() =>
     configStore.config.material_rev ? materials.value.slice().reverse() : materials.value
-    console.log(configStore.config.material_rev)
-})
+)
 </script>

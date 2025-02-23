@@ -5,7 +5,7 @@
             :to="{ name: 'CoursewareDetail', params: { id: id },query:{name:name} }">
             <!-- 左侧：名称和描述 -->
             <div class="flex flex-col flex-1 pr-4">
-                <h1 class="text-xl font-bold dark:text-cyan-600 text-zinc-700 [word-break:break-word]">
+                <h1 class="text-xl font-bold text-zinc-700 [word-break:break-word]" :class="watched ? 'text-green-400' :'dark:text-cyan-600'">
                     {{ name }}
                 </h1>
             </div>
@@ -20,7 +20,8 @@
 const props = defineProps({
     name: String,
     time: String,
-    id: Number
+    id: Number,
+    watched: Boolean
 });
 
 </script>

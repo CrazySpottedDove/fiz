@@ -28,6 +28,9 @@ listen("config-inited", (event) => {
 listen("homeworks-inited", (event) => {
     homeworkStore.setHomeworks(event.payload);
 });
+listen("watches-inited",(event)=>{
+    courseStore.setWatches(event.payload);
+})
 function refresh() {
     const semesterPromise = invoke("get_semesters");
     const gradesPromise = invoke("get_grades_and_analysis");
@@ -40,6 +43,15 @@ function refresh() {
             const homeworksPromise = invoke("get_homeworks");
             materialsPromise.then((materials) => {
                 materialStore.setMaterials(materials);
+                const watchesPromise = invoke("get_watches");
+                watchesPromise.catch((error) => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '下载监听课程课件失败',
+                        timer: 1500,
+                        text: error,
+                    });
+                });
             }).catch((error) => {
                 Swal.fire({
                     icon: 'error',

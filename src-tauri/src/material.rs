@@ -131,8 +131,8 @@ impl Session {
     pub async fn fetch_upload(
         &self,
         reference_id: u64,
-        title: String,
-        name: String,
+        title: &str,
+        name: &str,
     ) -> Result<()> {
         let url = format!("https://courses.zju.edu.cn/api/uploads/reference/{reference_id}/blob");
         let res = self.client.get(url).send().await?;
@@ -206,7 +206,7 @@ pub async fn fetch_upload(
 ) -> Result<(), String> {
     {
         SESSION
-            .fetch_upload(reference_id, title, name)
+            .fetch_upload(reference_id, &title, &name)
             .await
             .map_err(|e| e.to_string())?;
     }
