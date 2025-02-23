@@ -12,7 +12,7 @@
                     <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="密码"
                         class="px-4 py-2 border border-gray-300 rounded-md dark:bg-zinc-300 dark:text-zinc-700 dark:placeholder-zinc-500 w-full" />
                     <button type="button" @click="togglePasswordVisibility"
-                        class="absolute inset-y-0 right-0 px-3 py-2 text-gray-600 dark:text-gray-400">
+                        class="absolute inset-y-0 right-0 px-3 py-2 text-gray-600 dark:text-gray-500">
                         {{ showPassword ? '隐藏' : '显示' }}
                     </button>
                 </div>

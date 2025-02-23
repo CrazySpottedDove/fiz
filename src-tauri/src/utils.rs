@@ -29,11 +29,12 @@ pub fn get_fiz_dir() -> PathBuf {
     fiz_dir
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub courseware_dir: PathBuf,
     pub exp: bool,
     pub accept_mp4: bool,
+    pub material_rev: bool,
 }
 
 impl Store for Config {
@@ -50,6 +51,7 @@ impl Config {
             courseware_dir: FIZ_DIR.join("courseware"),
             exp: false,
             accept_mp4: true,
+            material_rev: true,
         }
     }
 }
@@ -119,13 +121,15 @@ pub fn rsa_no_padding(src: &str, modulus: &str, exponent: &str) -> String {
 pub fn init_config(app: AppHandle) -> Result<(), String> {
     app.emit("config-inited", &*CONFIG)
         .map_err(|e| e.to_string())?;
+    println!("{:?}", CONFIG.read().unwrap());
     Ok(())
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn update_config(courseware_dir: PathBuf, exp: bool, accept_mp4: bool) {
+pub fn update_config(courseware_dir: PathBuf, exp: bool, accept_mp4: bool, material_rev: bool) {
     let mut config = CONFIG.write().unwrap();
     config.courseware_dir = courseware_dir;
     config.exp = exp;
     config.accept_mp4 = accept_mp4;
+    config.material_rev = material_rev;
 }

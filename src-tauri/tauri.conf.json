@@ -1,39 +1,51 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
-  "productName": "fiz",
-  "version": "0.1.8",
-  "identifier": "com.fiz.app",
-  "build": {
-    "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
-    "frontendDist": "../dist"
-  },
-  "app": {
-    "windows": [
-      {
-        "title": "fiz",
-        "maximized": true,
-        "width": 800,
-        "height": 600
-      }
-    ],
-    "security": {
-      "csp": null,
-      "assetProtocol": {
-        "enable": true,
-        "scope": ["*/**"]
-      }
-    }
-  },
-  "bundle": {
-    "active": true,
-    "targets": "all",
-    "icon": [
-      "icons/icon.ico",
-      "icons/128x128.png",
-      "icons/256x256.png",
-      "icons/512x512.png"
-    ]
-  }
+	"$schema": "https://schema.tauri.app/config/2",
+	"productName": "fiz",
+	"version": "0.1.8",
+	"identifier": "com.fiz.app",
+	"build": {
+		"beforeDevCommand": "npm run dev",
+		"devUrl": "http://localhost:1420",
+		"beforeBuildCommand": "npm run build",
+		"frontendDist": "../dist"
+	},
+	"app": {
+		"windows": [
+			{
+				"title": "fiz",
+				"maximized": true,
+				"width": 800,
+				"height": 600
+			}
+		],
+		"security": {
+			"csp": null,
+			"assetProtocol": {
+				"enable": true,
+				"scope": ["*/**"]
+			}
+		}
+	},
+	"bundle": {
+		"active": true,
+		"targets": "all",
+		"icon": [
+			"icons/icon.ico",
+			"icons/128x128.png",
+			"icons/256x256.png",
+			"icons/512x512.png"
+		],
+		"createUpdaterArtifacts": true
+	},
+	"plugins": {
+		"updater": {
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFGNTRFRDk3RkM3RUFERTUKUldUbHJYNzhsKzFVSDd3YmVZSUNCVEhGN1UrbUlBYldHT01DWjJOdlhCQTlVZHFwQWdFQUYycTQK",
+			"windows": {
+				"installMode": "passive"
+			},
+			"endpoints": [
+				"https://github.com/CrazySpottedDove/fiz/releases/tag/updater/download/latest.json"
+			]
+		}
+	}
 }

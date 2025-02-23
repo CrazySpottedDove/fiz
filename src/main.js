@@ -4,9 +4,50 @@ import router from "./router";
 import { createPinia } from 'pinia';
 import { invoke } from "@tauri-apps/api/core";
 import "./styles/tailwind.css";
+import { check} from '@tauri-apps/plugin-updater'
+import Swal from "sweetalert2";
+import { relaunch } from "@tauri-apps/plugin-process";
+async function handleUpdate() {
+    const update = await check();
+    if (update) {
+        const result = await Swal.fire({
+            title: `发现新版本: ${update.version}`,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: '更新',
+            cancelButtonText: '取消'
+        });
+
+        if (result.isConfirmed) {
+            // 安装更新
+            let downloaded = 0;
+            let contentLength = 0;
+            // alternatively we could also call update.download() and update.install() separately
+            await update.downloadAndInstall((event) => {
+                switch (event.event) {
+                    case 'Started':
+                        contentLength = event.data.contentLength;
+                        console.log(`started downloading ${event.data.contentLength} bytes`);
+                        break;
+                    case 'Progress':
+                        downloaded += event.data.chunkLength;
+                        console.log(`downloaded ${downloaded} from ${contentLength}`);
+                        break;
+                    case 'Finished':
+                        console.log('download finished');
+                        break;
+                }
+            });
+            await relaunch();
+        }
+    }else{
+        console.log("没有发现新版本");
+    }
+}
 
 async function initializeApp() {
     try {
+        handleUpdate();
         await invoke('check_dir');
         invoke('init_config').catch(err => window.alert(`初始化配置失败：${err}`));
         const account_ready = await invoke('check_account');

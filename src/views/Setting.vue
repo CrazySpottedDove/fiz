@@ -2,7 +2,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import Layout from '../components/Layout.vue';
 import { useConfigStore } from '../stores';
-import { ref,onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import Swal from 'sweetalert2';
 
 const configStore = useConfigStore();
@@ -16,7 +16,8 @@ onMounted(() => {
                 config.value = {
                     courseware_dir: newConfig.courseware_dir,
                     exp: newConfig.exp,
-                    accept_mp4: newConfig.accept_mp4
+                    accept_mp4: newConfig.accept_mp4,
+                    material_rev: newConfig.material_rev,
                 };
             }
         },
@@ -27,8 +28,8 @@ onMounted(() => {
 // 保存配置到 store
 function saveConfig() {
     // 复制配置到全局 store 中
-    configStore.config = { ...config.value };
-    invoke('update_config', { courseware_dir: configStore.config.courseware_dir, exp: configStore.config.exp, accept_mp4: configStore.config.accept_mp4 });
+    configStore.setConfig({ ...config.value });
+    invoke('update_config', { courseware_dir: configStore.config.courseware_dir, exp: configStore.config.exp, accept_mp4: configStore.config.accept_mp4,material_rev:configStore.config.material_rev });
     Swal.fire({
         icon: 'success',
         title: '配置已保存',
@@ -66,6 +67,13 @@ function saveConfig() {
                     <input type="checkbox" v-model="config.accept_mp4"
                         class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
                     <span class="ml-2 text-xl font-bold">批量下载时包括 mp4 文件</span>
+                </label>
+            </div>
+            <div>
+                <label class="inline-flex items-center">
+                    <input type="checkbox" v-model="config.material_rev"
+                        class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
+                    <span class="ml-2 text-xl font-bold">课件倒序排列</span>
                 </label>
             </div>
         </form>
