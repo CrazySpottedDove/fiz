@@ -1,13 +1,12 @@
 use crate::{
     material::{MATERIALS, RECORD},
     session::{Session, SESSION},
-    utils::{Store, CONFIG, CONFIG_DIR},
+    utils::{Dir, Store, CONFIG, CONFIG_DIR},
 };
 use anyhow::Result;
 
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use serde_json::from_reader;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 #[derive(Serialize, Deserialize, Clone)]
@@ -16,30 +15,13 @@ pub struct Watch {
     pub name: String,
 }
 use crate::utils::Load;
-impl Load for Vec<Watch> {
-    fn load() -> Self {
-        let watches_dir = CONFIG_DIR.join("watches.json");
-        if watches_dir.exists() {
-            let Ok(reader) = std::fs::File::open(watches_dir) else {
-                return Vec::new();
-            };
-            let Ok(watches) = from_reader(reader) else {
-                return Vec::new();
-            };
-            watches
-        } else {
-            Vec::new()
-        }
+impl Dir for Vec<Watch> {
+    fn dir() -> std::path::PathBuf {
+        CONFIG_DIR.join("watches.json")
     }
 }
-impl Store for Vec<Watch> {
-    fn store(&self) -> Result<(), String> {
-        let watches_dir = CONFIG_DIR.join("watches.json");
-        let watches_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        std::fs::write(watches_dir, watches_str).map_err(|e| e.to_string())?;
-        Ok(())
-    }
-}
+impl Load for Vec<Watch> {}
+impl Store for Vec<Watch> {}
 lazy_static! {
     pub static ref WATCHES: Mutex<Vec<Watch>> = Mutex::new(Vec::<Watch>::load());
 }

@@ -15,8 +15,8 @@ const SUBMIT_URL: &str = "https://courses.zju.edu.cn/api/uploads";
 
 use crate::courseware::COURSES;
 use crate::session::{Session, MAX_RETRIES, SESSION};
-use crate::utils::Load;
 use crate::utils::CONFIG_DIR;
+use crate::utils::{Dir, Load};
 use crate::{material::Upload, utils::Store};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Homework {
@@ -50,32 +50,14 @@ impl Homework {
         }
     }
 }
-
-impl Load for Vec<Homework> {
-    fn load() -> Self {
-        let homeworks_dir = CONFIG_DIR.join("homeworks.json");
-        if homeworks_dir.exists() {
-            let Ok(reader) = std::fs::File::open(homeworks_dir) else {
-                return Vec::new();
-            };
-            let Ok(homeworks) = serde_json::from_reader(reader) else {
-                return Vec::new();
-            };
-            homeworks
-        } else {
-            Vec::new()
-        }
+impl Dir for Vec<Homework> {
+    fn dir() -> PathBuf {
+        CONFIG_DIR.join("homeworks.json")
     }
 }
+impl Load for Vec<Homework> {}
 
-impl Store for Vec<Homework> {
-    fn store(&self) -> Result<(), String> {
-        let homeworks_dir = CONFIG_DIR.join("homeworks.json");
-        let homeworks_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        std::fs::write(homeworks_dir, homeworks_str).map_err(|e| e.to_string())?;
-        Ok(())
-    }
-}
+impl Store for Vec<Homework> {}
 
 lazy_static! {
     pub static ref HOMEWORKS: Mutex<Vec<Homework>> = Mutex::new(Vec::<Homework>::load());

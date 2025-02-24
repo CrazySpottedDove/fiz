@@ -6,6 +6,7 @@ use crate::material::{MATERIALS, RECORD};
 use crate::session::SESSION;
 use crate::watch::WATCHES;
 use lazy_static::lazy_static;
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -30,7 +31,8 @@ pub fn get_fiz_dir() -> PathBuf {
     fiz_dir
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct Config {
     pub courseware_dir: PathBuf,
     pub exp: bool,
@@ -38,16 +40,18 @@ pub struct Config {
     pub material_rev: bool,
 }
 
-impl Store for Config {
+impl Store for Config {}
+
+pub trait Store: Serialize + Dir {
     fn store(&self) -> Result<(), String> {
-        let config_dir = CONFIG_DIR.join("config.json");
-        let config_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        fs::write(config_dir, config_str).map_err(|e| e.to_string())?;
+        let path = Self::dir();
+        let data = serde_json::to_string(self).map_err(|e| e.to_string())?;
+        fs::write(path, data).map_err(|e| e.to_string())?;
         Ok(())
     }
 }
-impl Config {
-    pub fn new() -> Self {
+impl Default for Config {
+    fn default() -> Self {
         Self {
             courseware_dir: FIZ_DIR.join("courseware"),
             exp: false,
@@ -56,29 +60,31 @@ impl Config {
         }
     }
 }
-pub trait Store {
-    fn store(&self) -> Result<(), String>;
-}
-impl Load for Config {
-    fn load() -> Self {
-        let config_dir = CONFIG_DIR.join("config.json");
-        if config_dir.exists() {
-            let Ok(reader) = std::fs::File::open(config_dir) else {
-                return Self::new();
-            };
-            let Ok(config) = serde_json::from_reader(reader) else {
-                return Self::new();
-            };
-            config
-        } else {
-            Self::new()
-        }
+impl Load for Config {}
+impl Dir for Config {
+    fn dir() -> PathBuf {
+        CONFIG_DIR.join("config.json")
     }
 }
-pub trait Load {
-    fn load() -> Self;
+pub trait Dir {
+    fn dir() -> PathBuf;
 }
 
+pub trait Load: DeserializeOwned + Default + Dir {
+    fn load() -> Self {
+        let path = Self::dir();
+        if !path.exists() {
+            return Self::default();
+        }
+        let Ok(file) = fs::File::open(&path) else {
+            return Self::default();
+        };
+        let Ok(data) = serde_json::from_reader(file) else {
+            return Self::default();
+        };
+        data
+    }
+}
 #[tauri::command]
 pub fn check_dir() -> Result<(), String> {
     if !CONFIG_DIR.exists() {
@@ -123,7 +129,6 @@ pub fn rsa_no_padding(src: &str, modulus: &str, exponent: &str) -> String {
 pub fn init_config(app: AppHandle) -> Result<(), String> {
     app.emit("config-inited", &*CONFIG)
         .map_err(|e| e.to_string())?;
-    println!("{:?}", CONFIG.read().unwrap());
     Ok(())
 }
 

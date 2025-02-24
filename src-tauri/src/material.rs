@@ -1,7 +1,7 @@
 use crate::{
     courseware::COURSES,
     session::{Session, MAX_RETRIES, SESSION},
-    utils::{Load, Store, CONFIG, CONFIG_DIR},
+    utils::{Dir, Load, Store, CONFIG, CONFIG_DIR},
 };
 use anyhow::{anyhow, Result};
 use futures::{future::join_all, StreamExt};
@@ -24,32 +24,14 @@ pub struct Material {
     pub title: String,
     pub uploads: Vec<Upload>,
 }
-
-impl Load for HashMap<u64, Vec<Material>> {
-    fn load() -> Self {
-        let materials_dir = CONFIG_DIR.join("materials.json");
-        if materials_dir.exists() {
-            let Ok(reader) = std::fs::File::open(materials_dir) else {
-                return HashMap::new();
-            };
-            let Ok(materials) = serde_json::from_reader(reader) else {
-                return HashMap::new();
-            };
-            materials
-        } else {
-            HashMap::new()
-        }
+impl Dir for HashMap<u64, Vec<Material>> {
+    fn dir() -> std::path::PathBuf {
+        CONFIG_DIR.join("materials.json")
     }
 }
+impl Load for HashMap<u64, Vec<Material>> {}
 
-impl Store for HashMap<u64, Vec<Material>> {
-    fn store(&self) -> Result<(), String> {
-        let materials_dir = CONFIG_DIR.join("materials.json");
-        let materials_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        std::fs::write(materials_dir, materials_str).map_err(|e| e.to_string())?;
-        Ok(())
-    }
-}
+impl Store for HashMap<u64, Vec<Material>> {}
 
 lazy_static! {
     pub static ref MATERIALS: Mutex<HashMap<u64, Vec<Material>>> =
@@ -128,12 +110,7 @@ impl Session {
         Ok(())
     }
 
-    pub async fn fetch_upload(
-        &self,
-        reference_id: u64,
-        title: &str,
-        name: &str,
-    ) -> Result<()> {
+    pub async fn fetch_upload(&self, reference_id: u64, title: &str, name: &str) -> Result<()> {
         let url = format!("https://courses.zju.edu.cn/api/uploads/reference/{reference_id}/blob");
         let res = self.client.get(url).send().await?;
         let path = CONFIG.read().unwrap().courseware_dir.join(title);
@@ -172,38 +149,16 @@ lazy_static! {
     pub static ref RECORD: Mutex<Vec<u64>> = Mutex::new(Vec::<u64>::load());
 }
 
-impl Store for Vec<u64> {
-    fn store(&self) -> Result<(), String> {
-        let record_dir = CONFIG_DIR.join("record.json");
-        let record_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        std::fs::write(record_dir, record_str).map_err(|e| e.to_string())?;
-        Ok(())
+impl Store for Vec<u64> {}
+impl Dir for Vec<u64> {
+    fn dir() -> std::path::PathBuf {
+        CONFIG_DIR.join("record.json")
     }
 }
-
-impl Load for Vec<u64> {
-    fn load() -> Self {
-        let record_dir = CONFIG_DIR.join("record.json");
-        if record_dir.exists() {
-            let Ok(reader) = std::fs::File::open(record_dir) else {
-                return Vec::new();
-            };
-            let Ok(record) = serde_json::from_reader(reader) else {
-                return Vec::new();
-            };
-            record
-        } else {
-            Vec::new()
-        }
-    }
-}
+impl Load for Vec<u64> {}
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn fetch_upload(
-    reference_id: u64,
-    title: String,
-    name: String,
-) -> Result<(), String> {
+pub async fn fetch_upload(reference_id: u64, title: String, name: String) -> Result<(), String> {
     {
         SESSION
             .fetch_upload(reference_id, &title, &name)

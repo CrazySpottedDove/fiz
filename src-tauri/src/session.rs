@@ -1,4 +1,4 @@
-use crate::utils::{Store, CONFIG_DIR};
+use crate::utils::{Dir, CONFIG_DIR};
 use anyhow::Result;
 use cookie_store::CookieStore;
 
@@ -58,10 +58,14 @@ impl Session {
         }
     }
 }
-
-impl Store for Session {
-    fn store(&self) -> Result<(), String> {
-        let cookie_dir = CONFIG_DIR.join("cookie.json");
+impl Dir for Session {
+    fn dir() -> std::path::PathBuf {
+        CONFIG_DIR.join("cookie.json")
+    }
+}
+impl Session {
+    pub fn store(&self) -> Result<(), String> {
+        let cookie_dir = Self::dir();
         let mut file = fs::OpenOptions::new()
             .write(true)
             .create(true)

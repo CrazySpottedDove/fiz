@@ -1,7 +1,7 @@
 use crate::account::{ACCOUNT, ETA_URL};
 use crate::session::SESSION;
 use crate::session::{Session, MAX_RETRIES};
-use crate::utils::{Load, Store, CONFIG_DIR};
+use crate::utils::{Dir, Load, Store, CONFIG_DIR};
 use anyhow::Result;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -99,31 +99,13 @@ impl Grade {
 lazy_static! {
     pub static ref GRADES: Mutex<Vec<Grade>> = Mutex::new(Vec::<Grade>::load());
 }
-impl Load for Vec<Grade> {
-    fn load() -> Self {
-        let grades_dir = CONFIG_DIR.join("grades.json");
-        if grades_dir.exists() {
-            let Ok(reader) = std::fs::File::open(grades_dir) else {
-                return Self::new();
-            };
-            let Ok(grades) = serde_json::from_reader(reader) else {
-                return Self::new();
-            };
-            grades
-        } else {
-            Self::new()
-        }
+impl Load for Vec<Grade> {}
+impl Dir for Vec<Grade> {
+    fn dir() -> std::path::PathBuf {
+        CONFIG_DIR.join("grades.json")
     }
 }
-
-impl Store for Vec<Grade> {
-    fn store(&self) -> Result<(), String> {
-        let grades_dir = CONFIG_DIR.join("grades.json");
-        let grades_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        std::fs::write(grades_dir, grades_str).map_err(|e| e.to_string())?;
-        Ok(())
-    }
-}
+impl Store for Vec<Grade> {}
 impl Session {
     pub async fn get_grades(&self) -> Result<()> {
         let stuid = ACCOUNT.lock().unwrap().as_ref().unwrap().stuid.clone();
@@ -175,30 +157,13 @@ pub struct Analysis {
     pub gpa: f64,
     pub credit: f64,
 }
-impl Load for Vec<Analysis> {
-    fn load() -> Self {
-        let analysis_dir = CONFIG_DIR.join("analysis.json");
-        if analysis_dir.exists() {
-            let Ok(reader) = std::fs::File::open(analysis_dir) else {
-                return Self::new();
-            };
-            let Ok(analysis) = serde_json::from_reader(reader) else {
-                return Self::new();
-            };
-            analysis
-        } else {
-            Self::new()
-        }
+impl Dir for Vec<Analysis> {
+    fn dir() -> std::path::PathBuf {
+        CONFIG_DIR.join("analysis.json")
     }
 }
-impl Store for Vec<Analysis> {
-    fn store(&self) -> Result<(), String> {
-        let analysis_dir = CONFIG_DIR.join("analysis.json");
-        let analysis_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        std::fs::write(analysis_dir, analysis_str).map_err(|e| e.to_string())?;
-        Ok(())
-    }
-}
+impl Load for Vec<Analysis> {}
+impl Store for Vec<Analysis> {}
 lazy_static! {
     pub static ref ANALYSIS: Mutex<Vec<Analysis>> = Mutex::new(Vec::<Analysis>::load());
 }

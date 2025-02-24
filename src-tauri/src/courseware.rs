@@ -1,6 +1,6 @@
 use crate::{
     session::{Session, SESSION},
-    utils::{Load, Store, CONFIG_DIR},
+    utils::{Dir, Load, Store, CONFIG_DIR},
 };
 use anyhow::Result;
 use lazy_static::lazy_static;
@@ -94,31 +94,13 @@ impl Course {
         }
     }
 }
-
-impl Load for Vec<Course> {
-    fn load() -> Self {
-        let courses_dir = CONFIG_DIR.join("courses.json");
-        if courses_dir.exists() {
-            let Ok(reader) = std::fs::File::open(courses_dir) else {
-                return Self::new();
-            };
-            let Ok(courses) = serde_json::from_reader(reader) else {
-                return Self::new();
-            };
-            courses
-        } else {
-            Self::new()
-        }
+impl Dir for Vec<Course> {
+    fn dir() -> std::path::PathBuf {
+        CONFIG_DIR.join("courses.json")
     }
 }
-impl Store for Vec<Course> {
-    fn store(&self) -> Result<(), String> {
-        let courses_dir = CONFIG_DIR.join("courses.json");
-        let courses_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        std::fs::write(courses_dir, courses_str).map_err(|e| e.to_string())?;
-        Ok(())
-    }
-}
+impl Load for Vec<Course> {}
+impl Store for Vec<Course> {}
 
 lazy_static! {
     pub static ref COURSES: Mutex<Vec<Course>> = Mutex::new(Vec::<Course>::load());

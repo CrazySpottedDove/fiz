@@ -1,5 +1,5 @@
 use crate::session::{Session, HOME_URL, LOGIN_URL, MAX_RETRIES, PUBKEY_URL, SESSION};
-use crate::utils::{rsa_no_padding, Store, CONFIG_DIR};
+use crate::utils::{rsa_no_padding, Dir, Store, CONFIG_DIR};
 use anyhow::{anyhow, Result};
 use futures::join;
 use lazy_static::lazy_static;
@@ -43,15 +43,12 @@ fn load_account() -> Option<Account> {
 pub fn check_account() -> bool {
     ACCOUNT.lock().unwrap().is_some()
 }
-
-impl Store for Account {
-    fn store(&self) -> Result<(), String> {
-        let account_dir = CONFIG_DIR.join("account.json");
-        let account_str = serde_json::to_string(self).map_err(|e| e.to_string())?;
-        fs::write(account_dir, account_str).map_err(|e| e.to_string())?;
-        Ok(())
+impl Dir for Account {
+    fn dir() -> std::path::PathBuf {
+        CONFIG_DIR.join("account.json")
     }
 }
+impl Store for Account {}
 impl Account {
     pub fn new(stuid: String, password: String) -> Self {
         Self {
