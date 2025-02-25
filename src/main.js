@@ -1,10 +1,10 @@
-import { createApp, isVNode } from "vue";
+import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import { createPinia } from 'pinia';
 import { invoke } from "@tauri-apps/api/core";
 import "./styles/tailwind.css";
-import { check} from '@tauri-apps/plugin-updater'
+import { check } from '@tauri-apps/plugin-updater'
 import Swal from "sweetalert2";
 import { relaunch } from "@tauri-apps/plugin-process";
 async function handleUpdate() {
@@ -45,7 +45,7 @@ async function initializeApp() {
             invoke('init_courses').catch(err => window.alert(`初始化课程失败：${err}`));
             invoke('init_grades_and_analysis').catch(err => window.alert(`初始化成绩和分析失败：${err}`));
             invoke('init_watches').catch(err => window.alert(`初始化监视课程失败：${err}`));
-            isVNode('init_materials').catch(err => window.alert(`初始化资料失败：${err}`));
+            invoke('init_materials').catch(err => window.alert(`初始化资料失败：${err}`));
             invoke('login').catch(err => window.alert(`登录失败：${err}`));
         } else {
             router.push('/login');
