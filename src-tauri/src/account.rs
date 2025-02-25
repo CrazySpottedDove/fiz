@@ -1,18 +1,17 @@
 use crate::session::{Session, HOME_URL, LOGIN_URL, MAX_RETRIES, PUBKEY_URL, SESSION};
-use crate::utils::{rsa_no_padding, Dir, Store, CONFIG_DIR};
+use crate::utils::{rsa_no_padding, Dir, Load, Store, CONFIG_DIR};
 use anyhow::{anyhow, Result};
 use futures::join;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::fs;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 const ZDBK_URL :&str="https://zjuam.zju.edu.cn/cas/login?service=http://zdbk.zju.edu.cn/jwglxt/xtgl/login_ssologin.html";
 pub const ETA_URL: &str = "http://eta.zju.edu.cn/index/student";
 lazy_static! {
     // 用Mutex包装，这样可以获取可变引用进行修改
-    pub static ref ACCOUNT: Mutex<Option<Account>> = Mutex::new(load_account());
+    pub static ref ACCOUNT: Mutex<Account> = Mutex::new(Account::load());
 }
 
 #[derive(Serialize, Deserialize)]
@@ -22,33 +21,30 @@ pub struct Account {
     pub valid: bool,
 }
 
-fn load_account() -> Option<Account> {
-    let account_dir = CONFIG_DIR.join("account.json");
-    if !account_dir.exists() {
-        return None;
+impl Default for Account{
+    fn default() -> Self {
+        Self {
+            stuid: "".to_string(),
+            password: "".to_string(),
+            valid: false,
+        }
     }
-    let Ok(account) = fs::read_to_string(account_dir) else {
-        return None;
-    };
-    let Ok(account) = serde_json::from_str::<Account>(&account) else {
-        return None;
-    };
-    if !account.valid {
-        return None;
-    }
-    Some(account)
 }
 
-#[tauri::command]
-pub fn check_account() -> bool {
-    ACCOUNT.lock().unwrap().is_some()
-}
-impl Dir for Account {
+impl Dir for Account{
     fn dir() -> std::path::PathBuf {
         CONFIG_DIR.join("account.json")
     }
 }
-impl Store for Account {}
+
+impl Load for Account{}
+impl Store for Account{}
+
+#[tauri::command]
+pub async fn check_account() -> bool {
+    ACCOUNT.lock().await.valid
+}
+
 impl Account {
     pub fn new(stuid: String, password: String) -> Self {
         Self {
@@ -149,18 +145,12 @@ impl Session {
 
 #[tauri::command]
 pub async fn login(app: AppHandle) -> Result<(), String> {
-    let mut account;
-    {
-        let mut account_guard = ACCOUNT.lock().map_err(|e| e.to_string())?;
-        account = account_guard.take().ok_or("ACCOUNT NOT INITIALIZED")?;
-    }
+    let mut account = ACCOUNT.lock().await;
     SESSION
         .login(&mut account)
         .await
         .map_err(|e| e.to_string())?;
 
-    let mut account_guard = ACCOUNT.lock().map_err(|e| e.to_string())?;
-    *account_guard = Some(account);
     app.emit("login-success", ()).map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -173,8 +163,7 @@ pub async fn relogin(stuid: String, password: String, app: AppHandle) -> Result<
         .await
         .map_err(|e| e.to_string())?;
 
-    let mut account_guard = ACCOUNT.lock().map_err(|e| e.to_string())?;
-    *account_guard = Some(account);
+    *ACCOUNT.lock().await = account;
     app.emit("login-success", ()).map_err(|e| e.to_string())?;
     Ok(())
 }

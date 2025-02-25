@@ -29,9 +29,11 @@ import { ref } from 'vue';
 import UploadsCard from './UploadsCard.vue';
 import { invoke } from '@tauri-apps/api/core';
 import Swal from 'sweetalert2';
+
 const props = defineProps({
     homework: Object,
 });
+
 const submitting = ref(false);
 function submit(id) {
     const queryFilePromise = invoke('query_file')

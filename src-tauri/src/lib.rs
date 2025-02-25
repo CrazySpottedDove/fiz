@@ -8,6 +8,7 @@ mod session;
 mod test;
 mod utils;
 mod watch;
+// mod courseware_quiz;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -17,10 +18,13 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::CloseRequested { api, .. } => {
-                if let Err(e) = utils::store() {
-                    eprintln!("保存数据失败: {}", e);
-                }
-                window.close().unwrap();
+                let window = window.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Err(e) = utils::store().await {
+                        eprintln!("保存数据失败: {}", e);
+                    }
+                    window.close().unwrap();
+                });
             }
             _ => {}
         })

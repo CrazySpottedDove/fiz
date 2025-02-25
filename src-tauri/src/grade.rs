@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 const ETA_GRADE_URL: &str = "http://eta.zju.edu.cn/zftal-xgxt-web/api/teacher/xshx/getKccjList.zf";
 #[derive(Serialize, Deserialize, Clone)]
@@ -108,7 +108,7 @@ impl Dir for Vec<Grade> {
 impl Store for Vec<Grade> {}
 impl Session {
     pub async fn get_grades(&self) -> Result<()> {
-        let stuid = ACCOUNT.lock().unwrap().as_ref().unwrap().stuid.clone();
+        let stuid = ACCOUNT.lock().await.stuid.clone();
         let url = format!("{ETA_GRADE_URL}?xh={stuid}&currentPage=1&showCount=200&xn=&xq=&kcmc=&orders=%5B%5D&sfjg=");
         let mut grades = Vec::new();
         for retry in 1..=MAX_RETRIES {
@@ -146,7 +146,7 @@ impl Session {
                 }
             }
         }
-        *GRADES.lock().unwrap() = grades;
+        *GRADES.lock().await = grades;
         Ok(())
     }
 }
@@ -168,9 +168,9 @@ lazy_static! {
     pub static ref ANALYSIS: Mutex<Vec<Analysis>> = Mutex::new(Vec::<Analysis>::load());
 }
 #[tauri::command]
-pub fn init_grades_and_analysis(app: AppHandle) -> Result<(), String> {
-    let grades = &*GRADES.lock().unwrap();
-    let analysis = &*ANALYSIS.lock().unwrap();
+pub async fn init_grades_and_analysis(app: AppHandle) -> Result<(), String> {
+    let grades = &*GRADES.lock().await;
+    let analysis = &*ANALYSIS.lock().await;
     app.emit("grades-and-analysis-inited", (grades, analysis))
         .map_err(|e| e.to_string())?;
     Ok(())
@@ -179,7 +179,7 @@ pub fn init_grades_and_analysis(app: AppHandle) -> Result<(), String> {
 #[tauri::command]
 pub async fn get_grades_and_analysis() -> Result<(Vec<Grade>, Vec<Analysis>), String> {
     SESSION.get_grades().await.map_err(|e| e.to_string())?;
-    let grades = GRADES.lock().unwrap().clone();
+    let grades = GRADES.lock().await.clone();
     let analysis = Grade::analize_by_xq_and_xn(grades.clone());
     Ok((grades, analysis))
 }

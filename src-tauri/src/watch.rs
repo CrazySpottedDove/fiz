@@ -7,7 +7,7 @@ use anyhow::Result;
 
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Watch {
@@ -28,9 +28,9 @@ lazy_static! {
 
 impl Session {
     pub async fn get_watches(&self) -> Result<()> {
-        let watches = WATCHES.lock().unwrap().clone();
-        let materials = MATERIALS.lock().unwrap().clone();
-        let record = RECORD.lock().unwrap().clone();
+        let watches = WATCHES.lock().await.clone();
+        let materials = MATERIALS.lock().await.clone();
+        let record = RECORD.lock().await.clone();
         let accept_mp4 = CONFIG.read().unwrap().accept_mp4;
         for watch in watches {
             let materials_watched = materials.get(&watch.id).unwrap();
@@ -58,8 +58,8 @@ pub async fn get_watches() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn init_watches(app: AppHandle) -> Result<(), String> {
-    let watches = &*WATCHES.lock().unwrap();
+pub async fn init_watches(app: AppHandle) -> Result<(), String> {
+    let watches = &*WATCHES.lock().await;
     app.emit("watches-inited", watches)
         .map_err(|e| e.to_string())?;
     Ok(())
@@ -67,7 +67,7 @@ pub fn init_watches(app: AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn set_watches(watches: Vec<Watch>) -> Result<(), String> {
-    *WATCHES.lock().unwrap() = watches;
+    *WATCHES.lock().await = watches;
     SESSION.get_watches().await.map_err(|e| e.to_string())?;
     Ok(())
 }

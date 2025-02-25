@@ -16,7 +16,7 @@ pub const PUBKEY_URL: &str = "https://zjuam.zju.edu.cn/cas/v2/getPubKey";
 pub const LOGIN_URL: &str = "https://zjuam.zju.edu.cn/cas/login";
 
 lazy_static! {
-    pub static ref SESSION: Session = Session::new();
+    pub static ref SESSION: Session = Session::load();
 }
 
 pub struct Session {
@@ -24,9 +24,15 @@ pub struct Session {
     pub client: Client,
 }
 
+impl Dir for Session {
+    fn dir() -> std::path::PathBuf {
+        CONFIG_DIR.join("cookie.json")
+    }
+}
+
 impl Session {
-    pub fn new() -> Self {
-        let cookie_dir = CONFIG_DIR.join("cookie.json");
+    pub fn load() -> Self {
+        let cookie_dir = Session::dir();
         #[allow(deprecated)]
         let cookie_store = if cookie_dir.exists() {
             CookieStore::load_json(std::io::BufReader::new(
@@ -58,11 +64,7 @@ impl Session {
         }
     }
 }
-impl Dir for Session {
-    fn dir() -> std::path::PathBuf {
-        CONFIG_DIR.join("cookie.json")
-    }
-}
+
 impl Session {
     pub fn store(&self) -> Result<(), String> {
         let cookie_dir = Self::dir();

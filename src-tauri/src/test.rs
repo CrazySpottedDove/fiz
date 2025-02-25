@@ -18,7 +18,7 @@ pub struct Test {
 
 impl Session {
     pub async fn get_tests(&self) -> Result<Vec<Test>> {
-        let id = ACCOUNT.lock().unwrap().as_ref().unwrap().stuid.clone();
+        let id = ACCOUNT.lock().await.stuid.clone();
         let url = format!("http://zdbk.zju.edu.cn/jwglxt/xskscx/kscx_cxXsgrksIndex.html?doType=query&gnmkdm=N509070&layout=default&su={id}#");
         let form = json!(
             {
@@ -33,7 +33,7 @@ impl Session {
         );
         let active_semesters: Vec<String> = SEMESTERS
             .lock()
-            .unwrap()
+            .await
             .iter()
             .filter_map(|semester| {
                 if !semester.is_active {

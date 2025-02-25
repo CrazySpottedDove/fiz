@@ -14,12 +14,7 @@ onMounted(() => {
         () => configStore.config,
         (newConfig) => {
             if (newConfig && Object.keys(newConfig).length > 0) {
-                config.value = {
-                    courseware_dir: newConfig.courseware_dir,
-                    exp: newConfig.exp,
-                    accept_mp4: newConfig.accept_mp4,
-                    material_rev: newConfig.material_rev,
-                };
+                config.value = newConfig;
             }
         },
         { immediate: true }
@@ -30,7 +25,7 @@ onMounted(() => {
 function saveConfig() {
     // 复制配置到全局 store 中
     configStore.setConfig({ ...config.value });
-    invoke('update_config', { courseware_dir: configStore.config.courseware_dir, exp: configStore.config.exp, accept_mp4: configStore.config.accept_mp4, material_rev: configStore.config.material_rev });
+    invoke('update_config', { new_config: config.value });
     Swal.fire({
         icon: 'success',
         title: '配置已保存',
@@ -94,8 +89,16 @@ function selectWatches() {
                     <span class="ml-2 text-xl font-bold">课件倒序排列</span>
                 </label>
             </div>
+            <div>
+                <label class="inline-flex items-center">
+                    <input type="checkbox" v-model="config.show_finished_task"
+                        class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
+                    <span class="ml-2 text-xl font-bold">显示已完成任务</span>
+                </label>
+            </div>
             <ul>
-                <p class="text-xl font-bold cursor-pointer hover:text-blue-600 active:text-green-400" @click="intoWatches">监听课程</p>
+                <p class="text-xl font-bold cursor-pointer hover:text-blue-600 active:text-green-400"
+                    @click="intoWatches">监听课程</p>
                 <li v-for="watch in courseStore.watches" :key="watch.id" class="text-lg font-bold ml-6 mt-2">
                     {{ watch.name }}
                 </li>

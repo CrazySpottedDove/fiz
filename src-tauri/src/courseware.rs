@@ -6,7 +6,7 @@ use anyhow::Result;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 const SEMESTERS_URL: &str = "https://courses.zju.edu.cn/api/my-semesters?";
 const COURSES_URL: &str = "https://courses.zju.edu.cn/api/my-courses?conditions=%7B%22status%22:%5B%22ongoing%22,%22notStarted%22%5D,%22keyword%22:%22%22,%22classify_type%22:%22recently_started%22,%22display_studio_list%22:false%7D&fields=id,name,semester_id,course_attributes&page=1&page_size=1000";
@@ -69,7 +69,7 @@ impl Session {
                 }
             }
         }
-        *SEMESTERS.lock().unwrap() = semesters;
+        *SEMESTERS.lock().await = semesters;
         Ok(())
     }
 }
@@ -126,14 +126,14 @@ impl Session {
                 Course::new(id, name, false, semester_id, time)
             })
             .collect::<Vec<Course>>();
-        *COURSES.lock().unwrap() = courses;
+        *COURSES.lock().await = courses;
         Ok(())
     }
 }
 
 #[tauri::command]
-pub fn init_courses(app: AppHandle) -> Result<(), String> {
-    let courses = &*COURSES.lock().unwrap();
+pub async fn init_courses(app: AppHandle) -> Result<(), String> {
+    let courses = &*COURSES.lock().await;
     app.emit("courses-inited", courses)
         .map_err(|e| e.to_string())?;
     Ok(())
@@ -148,13 +148,13 @@ pub async fn get_semesters() -> Result<(), String> {
 #[tauri::command]
 pub async fn get_courses() -> Result<Vec<Course>, String> {
     SESSION.get_courses().await.map_err(|e| e.to_string())?;
-    for course in COURSES.lock().unwrap().iter_mut() {
-        for semester in SEMESTERS.lock().unwrap().iter() {
+    for course in COURSES.lock().await.iter_mut() {
+        for semester in SEMESTERS.lock().await.iter() {
             if semester.id == course.semester_id && semester.is_active {
                 course.is_active = true;
                 break;
             }
         }
     }
-    Ok(COURSES.lock().unwrap().clone())
+    Ok(COURSES.lock().await.clone())
 }

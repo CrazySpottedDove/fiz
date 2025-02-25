@@ -38,6 +38,7 @@ pub struct Config {
     pub exp: bool,
     pub accept_mp4: bool,
     pub material_rev: bool,
+    pub show_finished_task: bool,
 }
 
 impl Store for Config {}
@@ -57,6 +58,7 @@ impl Default for Config {
             exp: false,
             accept_mp4: true,
             material_rev: true,
+            show_finished_task: false,
         }
     }
 }
@@ -94,19 +96,17 @@ pub fn check_dir() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn store() -> Result<(), String> {
-    if let Some(account) = ACCOUNT.lock().unwrap().as_ref() {
-        account.store()?;
-    }
+pub async fn store() -> Result<(), String> {
+    ACCOUNT.lock().await.store()?;
     SESSION.store()?;
-    COURSES.lock().unwrap().store()?;
+    COURSES.lock().await.store()?;
     CONFIG.read().unwrap().store()?;
-    GRADES.lock().unwrap().store()?;
-    ANALYSIS.lock().unwrap().store()?;
-    MATERIALS.lock().unwrap().store()?;
-    RECORD.lock().unwrap().store()?;
-    HOMEWORKS.lock().unwrap().store()?;
-    WATCHES.lock().unwrap().store()?;
+    GRADES.lock().await.store()?;
+    ANALYSIS.lock().await.store()?;
+    MATERIALS.lock().await.store()?;
+    RECORD.lock().await.store()?;
+    HOMEWORKS.lock().await.store()?;
+    WATCHES.lock().await.store()?;
     Ok(())
 }
 
@@ -133,10 +133,7 @@ pub fn init_config(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn update_config(courseware_dir: PathBuf, exp: bool, accept_mp4: bool, material_rev: bool) {
+pub fn update_config(new_config:Config) {
     let mut config = CONFIG.write().unwrap();
-    config.courseware_dir = courseware_dir;
-    config.exp = exp;
-    config.accept_mp4 = accept_mp4;
-    config.material_rev = material_rev;
+    *config = new_config;
 }

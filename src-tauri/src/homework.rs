@@ -7,7 +7,7 @@ use reqwest::multipart;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::path::PathBuf;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
@@ -120,7 +120,7 @@ impl Session {
         Err(anyhow!("Failed to get homework"))
     }
     pub async fn get_homeworks(&self) -> Result<()> {
-        let courses = COURSES.lock().unwrap().clone();
+        let courses = COURSES.lock().await.clone();
         let futures = courses.into_iter().map(|course| async move {
             let homeworks = self.get_homework(course.id, course.name).await?;
             Ok(homeworks) as Result<Vec<Homework>>
@@ -134,7 +134,7 @@ impl Session {
                 Err(e) => eprintln!("获取作业失败: {}", e),
             }
         }
-        *HOMEWORKS.lock().unwrap() = all_homeworks;
+        *HOMEWORKS.lock().await = all_homeworks;
         Ok(())
     }
 }
@@ -142,12 +142,12 @@ impl Session {
 #[tauri::command]
 pub async fn get_homeworks() -> Result<Vec<Homework>, String> {
     SESSION.get_homeworks().await.map_err(|e| e.to_string())?;
-    Ok(HOMEWORKS.lock().unwrap().clone())
+    Ok(HOMEWORKS.lock().await.clone())
 }
 
 #[tauri::command]
-pub fn init_homeworks(app: AppHandle) -> Result<(), String> {
-    let homeworks = &*HOMEWORKS.lock().unwrap();
+pub async fn init_homeworks(app: AppHandle) -> Result<(), String> {
+    let homeworks = &*HOMEWORKS.lock().await;
     app.emit("homeworks-inited", homeworks)
         .map_err(|e| e.to_string())?;
     Ok(())

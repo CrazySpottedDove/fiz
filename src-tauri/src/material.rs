@@ -9,7 +9,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 use tokio::{fs::File, io::AsyncWriteExt};
 #[derive(Serialize, Deserialize, Clone)]
@@ -91,7 +91,7 @@ impl Session {
     }
     pub async fn get_materials(&self) -> Result<()> {
         // 克隆一下 courses，避免持有锁太久
-        let courses = COURSES.lock().unwrap().clone();
+        let courses = COURSES.lock().await.clone();
 
         // 为每个课程创建一个异步任务，获取活动信息
         let futures = courses.into_iter().map(|course| async move {
@@ -105,7 +105,7 @@ impl Session {
         // 把结果存入 MATERIALS 中
         for res in results {
             let (course_id, materials) = res?;
-            MATERIALS.lock().unwrap().insert(course_id, materials);
+            MATERIALS.lock().await.insert(course_id, materials);
         }
         Ok(())
     }
@@ -122,7 +122,7 @@ impl Session {
             file.write_all(&chunk).await?;
         }
         {
-            let mut record = RECORD.lock().unwrap();
+            let mut record = RECORD.lock().await;
             if !record.contains(&reference_id) {
                 record.push(reference_id);
             }
@@ -132,8 +132,8 @@ impl Session {
 }
 
 #[tauri::command]
-pub fn init_materials(app: AppHandle) -> Result<(), String> {
-    let materials = &*MATERIALS.lock().unwrap();
+pub async fn init_materials(app: AppHandle) -> Result<(), String> {
+    let materials = &*MATERIALS.lock().await;
     app.emit("materials-inited", materials)
         .map_err(|e| e.to_string())?;
     Ok(())
@@ -142,7 +142,7 @@ pub fn init_materials(app: AppHandle) -> Result<(), String> {
 #[tauri::command]
 pub async fn get_materials() -> Result<HashMap<u64, Vec<Material>>, String> {
     SESSION.get_materials().await.map_err(|e| e.to_string())?;
-    Ok(MATERIALS.lock().unwrap().clone())
+    Ok(MATERIALS.lock().await.clone())
 }
 
 lazy_static! {
