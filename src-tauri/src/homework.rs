@@ -56,7 +56,6 @@ impl Dir for Vec<Homework> {
     }
 }
 impl Load for Vec<Homework> {}
-
 impl Store for Vec<Homework> {}
 
 lazy_static! {
