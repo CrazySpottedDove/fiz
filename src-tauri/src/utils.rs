@@ -39,6 +39,7 @@ pub struct Config {
     pub accept_mp4: bool,
     pub material_rev: bool,
     pub show_finished_task: bool,
+    pub show_grade: bool,
 }
 
 impl Store for Config {}
@@ -59,6 +60,7 @@ impl Default for Config {
             accept_mp4: true,
             material_rev: true,
             show_finished_task: false,
+            show_grade: true,
         }
     }
 }

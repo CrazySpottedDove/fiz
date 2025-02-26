@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use chrono::DateTime;
+use chrono::{DateTime, Local};
 use futures::channel::oneshot;
 use futures::future::join_all;
 use lazy_static::lazy_static;
@@ -94,6 +94,7 @@ impl Session {
                     let ddl_str = homework["deadline"].as_str()?;
                     let ddl = DateTime::parse_from_rfc3339(ddl_str)
                         .ok()?
+                        .with_timezone(&Local)
                         .format("%Y-%m-%d %H:%M")
                         .to_string();
                     let uploads = homework["uploads"].as_array()?;

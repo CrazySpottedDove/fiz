@@ -96,6 +96,13 @@ function selectWatches() {
                     <span class="ml-2 text-xl font-bold">显示已完成任务</span>
                 </label>
             </div>
+            <div>
+                <label class="inline-flex items-center">
+                    <input type="checkbox" v-model="config.show_grade"
+                        class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
+                    <span class="ml-2 text-xl font-bold">默认显示全部成绩</span>
+                </label>
+            </div>
             <ul>
                 <p class="text-xl font-bold cursor-pointer hover:text-blue-600 active:text-green-400"
                     @click="intoWatches">监听课程</p>
