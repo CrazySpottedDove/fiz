@@ -52,7 +52,9 @@ pub fn run() {
             courseware::get_semesters,
             watch::get_watches,
             watch::init_watches,
-            watch::set_watches
+            watch::set_watches,
+            account::login_zdbk,
+            account::login_eta,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

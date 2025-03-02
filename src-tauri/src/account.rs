@@ -5,8 +5,8 @@ use futures::join;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
+use tokio::sync::Mutex;
 const ZDBK_URL :&str="https://zjuam.zju.edu.cn/cas/login?service=http://zdbk.zju.edu.cn/jwglxt/xtgl/login_ssologin.html";
 pub const ETA_URL: &str = "http://eta.zju.edu.cn/index/student";
 lazy_static! {
@@ -21,7 +21,7 @@ pub struct Account {
     pub valid: bool,
 }
 
-impl Default for Account{
+impl Default for Account {
     fn default() -> Self {
         Self {
             stuid: "".to_string(),
@@ -31,14 +31,14 @@ impl Default for Account{
     }
 }
 
-impl Dir for Account{
+impl Dir for Account {
     fn dir() -> std::path::PathBuf {
         CONFIG_DIR.join("account.json")
     }
 }
 
-impl Load for Account{}
-impl Store for Account{}
+impl Load for Account {}
+impl Store for Account {}
 
 #[tauri::command]
 pub async fn check_account() -> bool {
@@ -117,17 +117,7 @@ impl Session {
         Ok(())
     }
     pub async fn login(&self, account: &mut Account) -> Result<()> {
-        let (res_home, res_zdbk, res_eta) = join!(
-            self.client.get(HOME_URL).send(),
-            self.client.get(ZDBK_URL).send(),
-            self.client.get(ETA_URL).send(),
-        );
-        let res_home = res_home?;
-        res_zdbk?;
-        if let Err(_) = res_eta {
-            println!("ETA_URL: {}", ETA_URL);
-        };
-
+        let res_home = self.client.get(HOME_URL).send().await?;
         if res_home.url().query() == None {
             account.valid = true;
             return Ok(());
@@ -139,6 +129,16 @@ impl Session {
     pub async fn relogin(&self, account: &mut Account) -> Result<()> {
         self.cookie_store.lock().unwrap().clear();
         self.login_core(account).await?;
+        Ok(())
+    }
+
+    pub async fn login_zdbk(&self) -> Result<()> {
+        self.client.get(ZDBK_URL).send().await?;
+        Ok(())
+    }
+
+    pub async fn login_eta(&self) -> Result<()> {
+        self.client.get(ETA_URL).send().await?;
         Ok(())
     }
 }
@@ -165,5 +165,17 @@ pub async fn relogin(stuid: String, password: String, app: AppHandle) -> Result<
 
     *ACCOUNT.lock().await = account;
     app.emit("login-success", ()).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn login_zdbk() -> Result<(), String> {
+    SESSION.login_zdbk().await.map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn login_eta() -> Result<(), String> {
+    SESSION.login_eta().await.map_err(|e| e.to_string())?;
     Ok(())
 }
