@@ -54,6 +54,7 @@ function submit(id) {
                     timer: 1500,
                 })
                 props.homework.submitted = true;
+                
             }).catch((e) => {
                 submitting.value = false;
                 Swal.fire({

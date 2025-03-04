@@ -7,10 +7,10 @@ use reqwest::multipart;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::path::PathBuf;
-use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
+use tokio::sync::Mutex;
 const SUBMIT_URL: &str = "https://courses.zju.edu.cn/api/uploads";
 
 use crate::courseware::COURSES;
@@ -135,6 +135,17 @@ impl Session {
                 Err(e) => eprintln!("获取作业失败: {}", e),
             }
         }
+        all_homeworks.sort_by(|a, b| {
+            let a_ddl = DateTime::parse_from_str(&format!("{} +00:00",a.ddl) ,"%Y-%m-%d %H:%M %z").unwrap_or_else(|_| {
+                eprintln!("非法日期格式: {}", a.ddl);
+                Local::now().fixed_offset() // 返回默认时间避免崩溃
+            });
+            let b_ddl = DateTime::parse_from_str(&format!("{} +00:00",b.ddl), "%Y-%m-%d %H:%M %z").unwrap_or_else(|_| {
+                eprintln!("非法日期格式: {}", b.ddl);
+                Local::now().fixed_offset()
+            });
+            a_ddl.cmp(&b_ddl)
+        });
         *HOMEWORKS.lock().await = all_homeworks;
         Ok(())
     }
@@ -271,6 +282,13 @@ pub async fn submit_homework(
         .submit_homework(homework_id, file_id, comment)
         .await
         .map_err(|e| e.to_string())?;
+    HOMEWORKS
+        .lock()
+        .await
+        .iter_mut()
+        .find(|h| h.id == homework_id)
+        .unwrap()
+        .submitted = true;
     Ok(())
 }
 
