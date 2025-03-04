@@ -30,7 +30,8 @@ const configStore = useConfigStore();
 onMounted(() => {
     watch(() => configStore.config.show_grade, (new_show_grade) => {
         showGrade.value = new_show_grade;
-    })
+    }
+        , { immediate: true })
 })
 function changeShowGrade() {
     showGrade.value = !showGrade.value
