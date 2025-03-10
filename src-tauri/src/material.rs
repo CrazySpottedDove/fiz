@@ -110,8 +110,8 @@ impl Session {
         Ok(())
     }
 
-    pub async fn fetch_upload(&self, reference_id: u64, title: &str, name: &str) -> Result<()> {
-        let url = format!("https://courses.zju.edu.cn/api/uploads/reference/{reference_id}/blob");
+    pub async fn fetch_upload(&self, id: u64, title: &str, name: &str) -> Result<()> {
+        let url = format!("https://courses.zju.edu.cn/api/uploads/{id}/blob");
         let res = self.client.get(url).send().await?;
         let path = CONFIG.read().unwrap().courseware_dir.join(title);
         std::fs::create_dir_all(&path)?;
@@ -123,8 +123,8 @@ impl Session {
         }
         {
             let mut record = RECORD.lock().await;
-            if !record.contains(&reference_id) {
-                record.push(reference_id);
+            if !record.contains(&id) {
+                record.push(id);
             }
         }
         Ok(())
@@ -158,10 +158,10 @@ impl Dir for Vec<u64> {
 impl Load for Vec<u64> {}
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn fetch_upload(reference_id: u64, title: String, name: String) -> Result<(), String> {
+pub async fn fetch_upload(id: u64, title: String, name: String) -> Result<(), String> {
     {
         SESSION
-            .fetch_upload(reference_id, &title, &name)
+            .fetch_upload(id, &title, &name)
             .await
             .map_err(|e| e.to_string())?;
     }

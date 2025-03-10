@@ -9,7 +9,7 @@
                     {{ upload.name }}
                 </h1>
                 <p class="text-xl font-bold active:text-green-400 cursor-pointer hover:text-emerald-600"
-                    @click="fetch(upload.reference_id, upload.name)">↓
+                    @click="fetch(upload.id, upload.name)">↓
                 </p>
             </div>
         </li>
@@ -48,9 +48,9 @@ const previewData = ref('');
 const previewType = ref('');
 const loading = ref(false);
 import Swal from 'sweetalert2';
-const fetch = async (reference_id, name) => {
+const fetch = async (id, name) => {
     try {
-        invoke('fetch_upload', { reference_id: reference_id, name: name, title: props.title });
+        invoke('fetch_upload', { id: id, name: name, title: props.title });
         Swal.fire({
             title: `添加下载任务`,
             html: `<div>${name}</div>`,

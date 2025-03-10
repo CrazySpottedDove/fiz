@@ -36,13 +36,13 @@ impl Session {
             let materials_watched = materials.get(&watch.id).unwrap();
             for material in materials_watched {
                 for upload in &material.uploads {
-                    if record.contains(&upload.reference_id) {
+                    if record.contains(&upload.id) {
                         continue;
                     }
                     if !accept_mp4 && upload.name.contains("mp4") {
                         continue;
                     }
-                    self.fetch_upload(upload.reference_id, &watch.name, &upload.name)
+                    self.fetch_upload(upload.id, &watch.name, &upload.name)
                         .await?;
                 }
             }
