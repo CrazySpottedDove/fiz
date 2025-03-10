@@ -4,8 +4,8 @@ use base64::Engine;
 use reqwest::header::CONTENT_TYPE;
 use serde_json::Value;
 impl Session {
-    pub async fn get_preview(&self, reference_id: u64) -> Result<(String, String)> {
-        let url = format!("https://courses.zju.edu.cn/api/uploads/reference/document/{reference_id}/url?preview=true");
+    pub async fn get_preview(&self, id: u64) -> Result<(String, String)> {
+        let url = format!("https://courses.zju.edu.cn/api/uploads/document/{id}/url?preview=true");
         let res = self.client.get(url).send().await?;
         let json = res.json::<Value>().await?;
         let url = json["url"]
@@ -24,9 +24,9 @@ impl Session {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn get_preview(reference_id: u64) -> Result<(String, String), String> {
+pub async fn get_preview(id: u64) -> Result<(String, String), String> {
     SESSION
-        .get_preview(reference_id)
+        .get_preview(id)
         .await
         .map_err(|e| e.to_string())
 }

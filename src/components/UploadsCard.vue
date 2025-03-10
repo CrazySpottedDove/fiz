@@ -5,7 +5,7 @@
             <div class="flex justify-between items-center w-full">
                 <h1 class="text-lg font-bold dark:text-blue-300 text-zinc-700 [word-break:break-word]"
                     :class="previewAble(upload.name) ? 'cursor-pointer' : 'cursor-not-allowed'"
-                    @click="previewAble(upload.name) && preview(upload.reference_id)">
+                    @click="previewAble(upload.name) && preview(upload.id)">
                     {{ upload.name }}
                 </h1>
                 <p class="text-xl font-bold active:text-green-400 cursor-pointer hover:text-emerald-600"
@@ -74,10 +74,10 @@ function base64ToBlob(base64Data, contentType) {
     return new Blob([byteArray], { type: contentType });
 }
 
-async function preview(reference_id) {
+async function preview(id) {
     try {
         loading.value = true;
-        const [base64Data, contentType] = await invoke('get_preview', { reference_id: reference_id });
+        const [base64Data, contentType] = await invoke('get_preview', { id: id });
 
         let blob = base64ToBlob(base64Data, contentType);
         let blobUrl = URL.createObjectURL(blob);
