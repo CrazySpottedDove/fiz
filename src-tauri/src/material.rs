@@ -9,8 +9,8 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
+use tokio::sync::Mutex;
 use tokio::{fs::File, io::AsyncWriteExt};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Upload {
@@ -111,7 +111,12 @@ impl Session {
     }
 
     pub async fn fetch_upload(&self, id: u64, title: &str, name: &str) -> Result<()> {
-        let url = format!("https://courses.zju.edu.cn/api/uploads/{id}/blob");
+        let pdf = CONFIG.read().unwrap().pdf;
+        let url = if pdf {
+            format!("https://courses.zju.edu.cn/api/uploads/document/{id}/url?preview=true")
+        } else {
+            format!("https://courses.zju.edu.cn/api/uploads/{id}/blob")
+        };
         let res = self.client.get(url).send().await?;
         let path = CONFIG.read().unwrap().courseware_dir.join(title);
         std::fs::create_dir_all(&path)?;

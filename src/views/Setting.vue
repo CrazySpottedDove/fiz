@@ -68,18 +68,25 @@ function selectWatches() {
                 <input id="courseware_dir" type="text" v-model="config.courseware_dir"
                     class="mt-1 block w-1/2 rounded-md focus:border-indigo-500 focus:ring-indigo-500 dark:bg-slate-700 text-center" />
             </div>
-            <div>
+            <!-- <div>
                 <label class="inline-flex items-center">
                     <input type="checkbox" v-model="config.exp"
                         class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
                     <span class="ml-2 text-xl font-bold">开启实验模式</span>
                 </label>
-            </div>
+            </div> -->
             <div>
                 <label class="inline-flex items-center">
                     <input type="checkbox" v-model="config.accept_mp4"
                         class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
                     <span class="ml-2 text-xl font-bold">批量下载时包括 mp4 文件</span>
+                </label>
+            </div>
+            <div>
+                <label class="inline-flex items-center">
+                    <input type="checkbox" v-model="config.pdf"
+                        class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
+                    <span class="ml-2 text-xl font-bold">office 课件下载为 pdf</span>
                 </label>
             </div>
             <div>
@@ -104,8 +111,8 @@ function selectWatches() {
                 </label>
             </div>
             <ul>
-                <p class="text-xl font-bold cursor-pointer hover:text-blue-600 active:text-green-400"
-                    @click="intoWatches">监听课程</p>
+                <p class="text-xl font-bold cursor-pointer text-blue-600 hover:text-green-400" @click="intoWatches">监听课程
+                </p>
                 <li v-for="watch in courseStore.watches" :key="watch.id" class="text-lg font-bold ml-6 mt-2">
                     {{ watch.name }}
                 </li>

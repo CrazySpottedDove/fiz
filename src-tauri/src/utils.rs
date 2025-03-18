@@ -40,6 +40,7 @@ pub struct Config {
     pub material_rev: bool,
     pub show_finished_task: bool,
     pub show_grade: bool,
+    pub pdf:bool,
 }
 
 impl Store for Config {}
@@ -61,6 +62,7 @@ impl Default for Config {
             material_rev: true,
             show_finished_task: false,
             show_grade: true,
+            pdf:false,
         }
     }
 }

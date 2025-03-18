@@ -10,6 +10,7 @@
 npm install
 npm run tauri add dialog updater opener
 # 开发
+npx tailwindcss -i ./src/styles/global.css -o ./src/styles/tailwind.css --watch
 npm run tauri dev
 # 构建
 npm run tauri build
