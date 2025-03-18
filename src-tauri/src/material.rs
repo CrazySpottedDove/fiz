@@ -49,7 +49,7 @@ impl Upload {
 }
 impl Session {
     pub async fn get_materials_by_course_id(&self, id: u64) -> Result<Vec<Material>> {
-        let url = format!("https://courses.zju.edu.cn/api/course/{id}/coursewares?conditions=%7B%22category%22:null,%22class_ids%22:%5B%5D,%22itemsSortBy%22:%7B%22predicate%22:%22chapter%22,%22reverse%22:false%7D,%22ignore_activity_types%22:%5B%22allon%22%5D%7D&page=1&page_size=1000");
+        let url = format!("https://courses.zju.edu.cn/api/course/{id}/coursewares?conditions=%7B%22category%22:null,%22itemsSortBy%22:%7B%22predicate%22:%22chapter%22,%22reverse%22:false%7D,%22ignore_activity_types%22:%5B%22lesson%22%5D%7D&page=1&page_size=1000");
         for _ in 1..MAX_RETRIES {
             let Ok(res) = self.client.get(&url).send().await else {
                 continue;
@@ -84,6 +84,7 @@ impl Session {
                 let material = Material { id, title, uploads };
                 material_vec.push(material);
             }
+            println!("获取课件成功");
             return Ok(material_vec);
         }
 
