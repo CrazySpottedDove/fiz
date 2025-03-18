@@ -15,8 +15,8 @@ const SUBMIT_URL: &str = "https://courses.zju.edu.cn/api/uploads";
 
 use crate::courseware::COURSES;
 use crate::session::{Session, MAX_RETRIES, SESSION};
-use crate::utils::CONFIG_DIR;
 use crate::utils::{Dir, Load};
+use crate::utils::{CONFIG, CONFIG_DIR};
 use crate::{material::Upload, utils::Store};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Homework {
@@ -122,10 +122,14 @@ impl Session {
     }
     pub async fn get_homeworks(&self) -> Result<()> {
         let courses = COURSES.lock().await.clone();
-        let futures = courses.into_iter().map(|course| async move {
-            let homeworks = self.get_homework(course.id, course.name).await?;
-            Ok(homeworks) as Result<Vec<Homework>>
-        });
+        let all = !CONFIG.read().unwrap().less;
+        let futures = courses
+            .into_iter()
+            .filter(|course| all | course.is_active)
+            .map(|course| async move {
+                let homeworks = self.get_homework(course.id, course.name).await?;
+                Ok(homeworks) as Result<Vec<Homework>>
+            });
 
         let results = join_all(futures).await;
         let mut all_homeworks = Vec::new();
@@ -136,14 +140,16 @@ impl Session {
             }
         }
         all_homeworks.sort_by(|a, b| {
-            let a_ddl = DateTime::parse_from_str(&format!("{} +00:00",a.ddl) ,"%Y-%m-%d %H:%M %z").unwrap_or_else(|_| {
-                eprintln!("非法日期格式: {}", a.ddl);
-                Local::now().fixed_offset() // 返回默认时间避免崩溃
-            });
-            let b_ddl = DateTime::parse_from_str(&format!("{} +00:00",b.ddl), "%Y-%m-%d %H:%M %z").unwrap_or_else(|_| {
-                eprintln!("非法日期格式: {}", b.ddl);
-                Local::now().fixed_offset()
-            });
+            let a_ddl = DateTime::parse_from_str(&format!("{} +00:00", a.ddl), "%Y-%m-%d %H:%M %z")
+                .unwrap_or_else(|_| {
+                    eprintln!("非法日期格式: {}", a.ddl);
+                    Local::now().fixed_offset() // 返回默认时间避免崩溃
+                });
+            let b_ddl = DateTime::parse_from_str(&format!("{} +00:00", b.ddl), "%Y-%m-%d %H:%M %z")
+                .unwrap_or_else(|_| {
+                    eprintln!("非法日期格式: {}", b.ddl);
+                    Local::now().fixed_offset()
+                });
             a_ddl.cmp(&b_ddl)
         });
         *HOMEWORKS.lock().await = all_homeworks;

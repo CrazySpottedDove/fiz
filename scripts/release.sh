@@ -1,4 +1,11 @@
 #!/bin/bash
+git add .
+git commit -m "$1"
+git push origin dev
+git checkout release
+git merge dev
+git push origin release
+git checkout dev
 jq '
   .version |= (
     split(".") as $v
@@ -19,12 +26,3 @@ jq '
       end
   )
 ' ./src-tauri/tauri.conf.json > tmp.$$.json && mv tmp.$$.json ./src-tauri/tauri.conf.json
-
-# 后续 git 操作
-git add .
-git commit -m "$1"
-git push origin dev
-git checkout release
-git merge dev
-git push origin release
-git checkout dev

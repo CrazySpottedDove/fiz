@@ -49,7 +49,7 @@ impl Upload {
 }
 impl Session {
     pub async fn get_materials_by_course_id(&self, id: u64) -> Result<Vec<Material>> {
-        let url = format!("https://courses.zju.edu.cn/api/course/{id}/coursewares?conditions=%7B%22category%22:null,%22class_ids%22:%5B%5D,%22itemsSortBy%22:%7B%22predicate%22:%22chapter%22,%22reverse%22:false%7D,%22ignore_activity_types%22:%5B%22lesson%22%5D%7D&page=1&page_size=1000");
+        let url = format!("https://courses.zju.edu.cn/api/course/{id}/coursewares?conditions=%7B%22category%22:null,%22class_ids%22:%5B%5D,%22itemsSortBy%22:%7B%22predicate%22:%22chapter%22,%22reverse%22:false%7D,%22ignore_activity_types%22:%5B%22allon%22%5D%7D&page=1&page_size=1000");
         for _ in 1..MAX_RETRIES {
             let Ok(res) = self.client.get(&url).send().await else {
                 continue;
@@ -92,12 +92,16 @@ impl Session {
     pub async fn get_materials(&self) -> Result<()> {
         // 克隆一下 courses，避免持有锁太久
         let courses = COURSES.lock().await.clone();
-
+        let all = !CONFIG.read().unwrap().less;
         // 为每个课程创建一个异步任务，获取活动信息
-        let futures = courses.into_iter().map(|course| async move {
-            let materials = self.get_materials_by_course_id(course.id).await?;
-            Ok((course.id, materials)) as Result<(u64, Vec<Material>)>
-        });
+        let futures =
+            courses
+                .into_iter()
+                .filter(|course| all | course.is_active)
+                .map(|course| async move {
+                    let materials = self.get_materials_by_course_id(course.id).await?;
+                    Ok((course.id, materials)) as Result<(u64, Vec<Material>)>
+                });
 
         // 并发执行所有任务
         let results = join_all(futures).await;
@@ -111,8 +115,14 @@ impl Session {
     }
 
     pub async fn fetch_upload(&self, id: u64, title: &str, name: &str) -> Result<()> {
+        let is_office_file = name.ends_with(".docx")
+            || name.ends_with(".doc")
+            || name.ends_with(".pptx")
+            || name.ends_with(".ppt")
+            || name.ends_with(".xlsx")
+            || name.ends_with(".xls");
         let pdf = CONFIG.read().unwrap().pdf;
-        let url = if pdf {
+        let url = if pdf && is_office_file {
             format!("https://courses.zju.edu.cn/api/uploads/document/{id}/url?preview=true")
         } else {
             format!("https://courses.zju.edu.cn/api/uploads/{id}/blob")

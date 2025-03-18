@@ -98,6 +98,13 @@ function selectWatches() {
             </div>
             <div>
                 <label class="inline-flex items-center">
+                    <input type="checkbox" v-model="config.show_grade"
+                        class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
+                    <span class="ml-2 text-xl font-bold">默认显示全部成绩</span>
+                </label>
+            </div>
+            <div>
+                <label class="inline-flex items-center">
                     <input type="checkbox" v-model="config.show_finished_task"
                         class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
                     <span class="ml-2 text-xl font-bold">显示已完成任务</span>
@@ -105,9 +112,9 @@ function selectWatches() {
             </div>
             <div>
                 <label class="inline-flex items-center">
-                    <input type="checkbox" v-model="config.show_grade"
+                    <input type="checkbox" v-model="config.less"
                         class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
-                    <span class="ml-2 text-xl font-bold">默认显示全部成绩</span>
+                    <span class="ml-2 text-xl font-bold">只查询活跃课程的课件&作业</span>
                 </label>
             </div>
             <ul>
