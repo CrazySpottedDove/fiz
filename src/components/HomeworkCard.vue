@@ -54,7 +54,7 @@ function submit(id) {
                     timer: 1500,
                 })
                 props.homework.submitted = true;
-                
+
             }).catch((e) => {
                 submitting.value = false;
                 Swal.fire({
@@ -89,5 +89,6 @@ function submit(id) {
 .description * {
     color: inherit !important;
     font-size: inherit !important;
+    word-break: break-word;
 }
 </style>
