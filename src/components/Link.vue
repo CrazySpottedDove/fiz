@@ -10,7 +10,6 @@
         {{ text }}
     </span>
 </template>
-
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
@@ -18,6 +17,7 @@ import { toRefs } from 'vue';
 import router from '../router';
 import Swal from 'sweetalert2';
 import { useStateStore } from '../stores';
+import { refresh } from '../logic/refresh';
 const stateStore = useStateStore();
 const props = defineProps({
     text: String,
@@ -51,6 +51,16 @@ async function handleChangeRoute(){
                 stateStore.setLogin(false);
                 router.push(href.value);
             }
+        });
+    }else if (text.value === "刷新"){
+        refresh();
+        Swal.fire({
+            title: `Launch: 刷新`,
+            icon: 'success',
+            showConfirmButton: false,
+            position: 'top',
+            timer: 1000,
+            toast: true,
         });
     }
      else {

@@ -114,7 +114,7 @@ function selectWatches() {
                 <label class="inline-flex items-center">
                     <input type="checkbox" v-model="config.less"
                         class="rounded border-gray-300 text-indigo-600  focus:ring-indigo-500 scale-150" />
-                    <span class="ml-2 text-xl font-bold">只查询活跃课程的课件&作业</span>
+                    <span class="ml-2 text-xl font-bold">只查询活跃课程</span>
                 </label>
             </div>
             <ul>

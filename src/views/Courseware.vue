@@ -1,6 +1,6 @@
 <template>
     <Layout>
-        <div class="text-center mt-4 fixed left-12">
+        <div class="text-center mt-4 fixed left-12" v-if="!less">
             <button class="px-4 py-2 bg-cyan-700 text-zinc-200 font-bold rounded hover:bg-blue-700 w-20"
                 @click="toggleInactive">
                 {{ showInactive ? 'Less' : 'More' }}
@@ -14,7 +14,6 @@
                 class="dark:text-indigo-100" :name="course.name" :time="course.time" :id="course.id"
                 :watched="watched(course.id)" />
         </ul>
-
     </Layout>
 </template>
 
@@ -22,21 +21,21 @@
 import { ref, computed } from "vue";
 import Layout from "../components/Layout.vue";
 import CourseCard from "../components/CourseCard.vue";
-import { useCourseStore } from "../stores";
+import { useConfigStore, useCourseStore } from "../stores";
 
 const courseStore = useCourseStore();
-const courses = courseStore.courses;
+const less = useConfigStore().config.less;
 const watches = courseStore.watches;
 // 定义是否显示非激活课程的开关
 const showInactive = ref(false);
 
 // 计算属性过滤激活与非激活的课程
 const activeCourses = computed(() => {
-    return courses.filter(course => course.is_active);
+    return courseStore.courses.filter(course => course.is_active);
 });
 
 const inactiveCourses = computed(() => {
-    return courses.filter(course => !course.is_active);
+    return courseStore.courses.filter(course => !course.is_active);
 });
 const watched = (id) => watches.find(w => w.id === id)
 

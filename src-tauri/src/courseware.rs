@@ -1,13 +1,15 @@
+use std::collections::HashSet;
+
 use crate::{
     session::{Session, SESSION},
-    utils::{Dir, Load, Store, CONFIG_DIR},
+    utils::{Dir, Load, Store, CONFIG, CONFIG_DIR},
 };
 use anyhow::Result;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
+use tokio::sync::Mutex;
 const SEMESTERS_URL: &str = "https://courses.zju.edu.cn/api/my-semesters?";
 const COURSES_URL: &str = "https://courses.zju.edu.cn/api/my-courses?conditions=%7B%22status%22:%5B%22ongoing%22,%22notStarted%22%5D,%22keyword%22:%22%22,%22classify_type%22:%22recently_started%22,%22display_studio_list%22:false%7D&fields=id,name,semester_id,course_attributes&page=1&page_size=1000";
 #[derive(Serialize, Deserialize, Clone)]
@@ -148,13 +150,26 @@ pub async fn get_semesters() -> Result<(), String> {
 #[tauri::command]
 pub async fn get_courses() -> Result<Vec<Course>, String> {
     SESSION.get_courses().await.map_err(|e| e.to_string())?;
-    for course in COURSES.lock().await.iter_mut() {
-        for semester in SEMESTERS.lock().await.iter() {
-            if semester.id == course.semester_id && semester.is_active {
-                course.is_active = true;
-                break;
+    let less = CONFIG.read().unwrap().less;
+    let active_semester_ids: HashSet<u64> = SEMESTERS
+        .lock()
+        .await
+        .iter()
+        .filter_map(|semester| {
+            if semester.is_active {
+                Some(semester.id)
+            } else {
+                None
             }
+        })
+        .collect();
+    let mut courses_guard = COURSES.lock().await;
+    courses_guard.retain_mut(|course| {
+        if active_semester_ids.contains(&course.semester_id) {
+            course.is_active = true;
+            return true;
         }
-    }
-    Ok(COURSES.lock().await.clone())
+        !less
+    });
+    Ok(courses_guard.clone())
 }
