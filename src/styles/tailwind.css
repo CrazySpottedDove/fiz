@@ -637,6 +637,10 @@ video {
   margin-left: 0.5rem;
 }
 
+.ml-44 {
+  margin-left: 11rem;
+}
+
 .ml-6 {
   margin-left: 1.5rem;
 }
@@ -655,6 +659,14 @@ video {
 
 .mt-4 {
   margin-top: 1rem;
+}
+
+.ml-40 {
+  margin-left: 10rem;
+}
+
+.ml-20 {
+  margin-left: 5rem;
 }
 
 .block {
@@ -953,11 +965,6 @@ video {
 .text-gray-600 {
   --tw-text-opacity: 1;
   color: rgb(75 85 99 / var(--tw-text-opacity, 1));
-}
-
-.text-green-400 {
-  --tw-text-opacity: 1;
-  color: rgb(74 222 128 / var(--tw-text-opacity, 1));
 }
 
 .text-indigo-600 {

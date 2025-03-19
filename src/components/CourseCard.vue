@@ -1,11 +1,11 @@
 <template>
-    <li
-        class="dark:text-zinc-400 text-zinc-500 gap-1 p-6 border dark:border-zinc-700/60 rounded-lg flex flex-col bg-opacity-40 dark:bg-opacity-40 bg-zinc-50 dark:bg-zinc-800">
+    <Card>
         <router-link class="flex justify-between items-center w-full"
-            :to="{ name: 'CoursewareDetail', params: { id: id },query:{name:name} }">
+            :to="{ name: 'CoursewareDetail', params: { id: id }, query: { name: name } }">
             <!-- 左侧：名称和描述 -->
             <div class="flex flex-col flex-1 pr-4">
-                <h1 class="text-xl font-bold text-zinc-700 [word-break:break-word]" :class="watched ? 'dark:text-green-400' :'dark:text-cyan-600'">
+                <h1 class="text-xl font-bold text-zinc-700 [word-break:break-word]"
+                    :class="watched ? 'dark:text-green-400' : 'dark:text-cyan-600'">
                     {{ name }}
                 </h1>
             </div>
@@ -13,10 +13,10 @@
                 {{ time }}
             </p>
         </router-link>
-    </li>
-
+    </Card>
 </template>
 <script setup>
+import Card from './Card.vue';
 const props = defineProps({
     name: String,
     time: String,

@@ -1,7 +1,6 @@
 <template>
     <ul>
-        <li v-for="upload in uploads" :key="upload.id"
-            class="dark:text-zinc-400 text-zinc-500 gap-1 p-6 border dark:border-zinc-700/60 rounded-lg flex flex-col bg-opacity-40 dark:bg-opacity-40 bg-zinc-50 dark:bg-zinc-800">
+        <Card v-for="upload in uploads" :key="upload.id">
             <div class="flex justify-between items-center w-full">
                 <h1 class="text-lg font-bold dark:text-blue-300 text-zinc-700 [word-break:break-word]"
                     :class="previewAble(upload.name) ? 'cursor-pointer' : 'cursor-not-allowed'"
@@ -12,7 +11,7 @@
                     @click="fetch(upload.id, upload.name)">↓
                 </p>
             </div>
-        </li>
+        </Card>
     </ul>
     <div v-if="loading || showPreview" class="fixed inset-0 z-50 dark:bg-zinc-900 bg-opacity-80 flex flex-col">
         <!-- 顶部关闭条 -->
@@ -48,6 +47,7 @@ const previewData = ref('');
 const previewType = ref('');
 const loading = ref(false);
 import Swal from 'sweetalert2';
+import Card from './Card.vue';
 const fetch = async (id, name) => {
     try {
         invoke('fetch_upload', { id: id, name: name, title: props.title });

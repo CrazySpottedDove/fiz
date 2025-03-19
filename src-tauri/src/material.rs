@@ -84,11 +84,9 @@ impl Session {
                 let material = Material { id, title, uploads };
                 material_vec.push(material);
             }
-            println!("获取课件成功");
             return Ok(material_vec);
         }
-
-        Err(anyhow!("获取课件失败"))
+        Err(anyhow!("获取课件失败：超过最大尝试次数"))
     }
     pub async fn get_materials(&self) -> Result<()> {
         // 克隆一下 courses，避免持有锁太久

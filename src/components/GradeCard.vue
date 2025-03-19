@@ -1,6 +1,5 @@
 <template>
-    <li
-        class="dark:text-zinc-400 text-zinc-500 gap-1 p-6 border dark:border-zinc-700/60 rounded-lg flex flex-col bg-opacity-40 dark:bg-opacity-40 bg-zinc-50 dark:bg-zinc-800">
+    <Card>
         <div class="flex justify-between items-center w-full space-x-4">
             <!-- 左侧：名称和描述 -->
             <div class="flex flex-col flex-1 pr-4">
@@ -20,10 +19,11 @@
                 </h1>
             </div>
         </div>
-    </li>
+    </Card>
 </template>
 <script setup>
 import { computed } from 'vue';
+import Card from './Card.vue';
 const props = defineProps({
     name: String,
     grade: String,
