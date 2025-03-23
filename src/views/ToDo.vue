@@ -6,7 +6,7 @@
                 {{ configStore.config.show_finished_task ? 'Less' : 'More' }}
             </button>
         </div>
-        <HomeworkCard v-for="homework in filteredHomeworks" :homework="homework" :key="homework.id" class="relative z-10"/>
+        <HomeworkCard v-for="homework in filteredHomeworks" :homework="homework" :key="homework.id" />
     </Layout>
 </template>
 <script setup>

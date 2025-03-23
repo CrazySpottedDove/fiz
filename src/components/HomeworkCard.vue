@@ -1,6 +1,5 @@
 <template>
-    <li
-        class="dark:text-zinc-400 text-zinc-500 gap-1 p-6 border dark:border-zinc-700/60 rounded-lg flex flex-col bg-opacity-40 dark:bg-opacity-40 bg-zinc-50 dark:bg-zinc-800 relative z-10">
+    <Card>
         <div class="flex justify-between items-center w-full">
             <h1 class="text-xl font-bold [word-break:break-word]"
                 :class="homework.submitted ? 'dark:text-green-400' : 'dark:text-yellow-400'">
@@ -15,7 +14,7 @@
         </div>
         <br>
         <UploadsCard :uploads="homework.uploads" :title="homework.course" />
-    </li>
+    </Card>
     <div v-if="submitting" class="fixed inset-0 z-50 dark:bg-zinc-900 bg-opacity-80 flex flex-col">
         <div class="flex-1 flex justify-center items-center">
             <p class="text-white font-bold text-xl">上传中...</p>
@@ -27,6 +26,7 @@
 <script setup>
 import { ref } from 'vue';
 import UploadsCard from './UploadsCard.vue';
+import Card from './Card.vue';
 import { invoke } from '@tauri-apps/api/core';
 import Swal from 'sweetalert2';
 
