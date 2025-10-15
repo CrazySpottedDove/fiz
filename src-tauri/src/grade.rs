@@ -9,7 +9,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use tokio::sync::Mutex;
 use tauri::{AppHandle, Emitter};
-const ETA_GRADE_URL: &str = "http://eta.zju.edu.cn/zftal-xgxt-web/api/teacher/xshx/getKccjList.zf";
+const ETA_GRADE_URL: &str = "https://eta.zju.edu.cn/zftal-xgxt-web/api/teacher/xshx/getKccjList.zf";
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Grade {
     pub name: String,

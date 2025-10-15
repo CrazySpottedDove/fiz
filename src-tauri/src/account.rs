@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{AppHandle, Emitter};
 use tokio::sync::Mutex;
-const ZDBK_URL :&str="https://zjuam.zju.edu.cn/cas/login?service=http://zdbk.zju.edu.cn/jwglxt/xtgl/login_ssologin.html";
-pub const ETA_URL: &str = "http://eta.zju.edu.cn/index/student";
+const ZDBK_URL :&str="https://zjuam.zju.edu.cn/cas/login?service=https://zdbk.zju.edu.cn/jwglxt/xtgl/login_ssologin.html";
+pub const ETA_URL: &str = "https://eta.zju.edu.cn/index/student";
 lazy_static! {
     // 用Mutex包装，这样可以获取可变引用进行修改
     pub static ref ACCOUNT: Mutex<Account> = Mutex::new(Account::load());
