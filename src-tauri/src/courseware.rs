@@ -26,9 +26,9 @@ impl Semester {
             is_active,
         }
     }
-    pub fn parse_name(&self) -> (String, String) {
-        let year = self.name[0..9].to_string();
-        let term = self.name[9..].to_string();
+    pub fn parse_name(&self) -> (&str, &str) {
+        let year = &self.name[0..9];
+        let term = &self.name[9..];
         (year, term)
     }
 }
@@ -66,7 +66,7 @@ impl Session {
         if !more_term.is_empty() {
             for semester in &mut semesters {
                 let (this_year, this_term) = semester.parse_name();
-                if this_year == year && more_term.contains(&&this_term[..]) {
+                if this_year == year && more_term.contains(&this_term) {
                     semester.is_active = true;
                 }
             }

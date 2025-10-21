@@ -19,7 +19,8 @@ pub struct Test {
 impl Session {
     pub async fn get_tests(&self) -> Result<Vec<Test>> {
         let id = ACCOUNT.lock().await.stuid.clone();
-        let url = format!("http://zdbk.zju.edu.cn/jwglxt/xskscx/kscx_cxXsgrksIndex.html?doType=query&gnmkdm=N509070&layout=default&su={id}#");
+        // https://zdbk.zju.edu.cn/jwglxt/xskscx/kscx_cxXsgrksIndex.html?doType=query&gnmkdm=N509070&su=3230104178
+        let url = format!("https://zdbk.zju.edu.cn/jwglxt/xskscx/kscx_cxXsgrksIndex.html?doType=query&gnmkdm=N509070&layout=default&su={id}#");
         let form = json!(
             {
                 "_search": false,
@@ -36,11 +37,12 @@ impl Session {
             .await
             .iter()
             .filter_map(|semester| {
+                // todo: 学期末的时候，学期自动被置为不活跃，但是考试应当是活跃的，需要解决这个问题
                 if !semester.is_active {
                     return None;
                 }
                 let (year, term) = semester.parse_name();
-                let id = match term.as_str() {
+                let id = match term {
                     "春" | "夏" | "春夏" => "2",
                     "秋" | "冬" | "秋冬" | "短" => "1",
                     _ => "",
@@ -51,6 +53,7 @@ impl Session {
                 Some(format!("{year}-{id}"))
             })
             .collect();
+
         for _ in 1..=MAX_RETRIES {
             let Ok(res) = self.client.post(&url).form(&form).send().await else {
                 continue;
@@ -61,6 +64,40 @@ impl Session {
             let Some(items) = json["items"].as_array() else {
                 continue;
             };
+
+            // let res = match self
+            //     .client
+            //     .post(&url)
+            //     .form(&form)
+            //     .send()
+            //     .await
+            // {
+            //     Ok(res) => res,
+            //     Err(e) => {
+            //         println!("请求发送失败: {:?}", e);
+            //         continue;
+            //     }
+            // };
+            // let text = res.text().await;
+            // match text {
+            //     Ok(ref t) => println!("收到响应: {}", t),
+            //     Err(e) => {
+            //         println!("读取响应失败: {:?}", e);
+            //         continue;
+            //     }
+            // }
+            // let json: serde_json::Result<Value> = serde_json::from_str(text.as_ref().unwrap());
+            // let json = match json {
+            //     Ok(j) => j,
+            //     Err(e) => {
+            //         println!("解析JSON失败: {:?}", e);
+            //         continue;
+            //     }
+            // };
+            // let Some(items) = json["items"].as_array() else {
+            //     println!("items 字段不存在或不是数组: {:?}", json);
+            //     continue;
+            // };
             let tests: Vec<Test> = items
                 .iter()
                 .filter_map(|item| {

@@ -139,17 +139,16 @@ impl Session {
                 Err(e) => eprintln!("获取作业失败: {}", e),
             }
         }
-        all_homeworks.sort_by(|a, b| {
-            let a_ddl = DateTime::parse_from_str(&format!("{} +00:00", a.ddl), "%Y-%m-%d %H:%M %z")
+        let parse_date = |date: &str| {
+            DateTime::parse_from_str(&format!("{} +00:00", date), "%Y-%m-%d %H:%M %z")
                 .unwrap_or_else(|_| {
-                    eprintln!("非法日期格式: {}", a.ddl);
+                    eprintln!("非法日期格式: {}", date);
                     Local::now().fixed_offset() // 返回默认时间避免崩溃
-                });
-            let b_ddl = DateTime::parse_from_str(&format!("{} +00:00", b.ddl), "%Y-%m-%d %H:%M %z")
-                .unwrap_or_else(|_| {
-                    eprintln!("非法日期格式: {}", b.ddl);
-                    Local::now().fixed_offset()
-                });
+                })
+        };
+        all_homeworks.sort_by(|a, b| {
+            let a_ddl = parse_date(&a.ddl);
+            let b_ddl = parse_date(&b.ddl);
             a_ddl.cmp(&b_ddl)
         });
         *HOMEWORKS.lock().await = all_homeworks;
