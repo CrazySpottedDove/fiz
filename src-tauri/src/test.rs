@@ -25,10 +25,10 @@ impl Session {
             {
                 "_search": false,
                 "nd": &SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis(),
-                "queryModel.showCount": 1000,
+                "queryModel.showCount": 15,
                 "queryModel.currentPage": 1,
                 "queryModel.sortName": "xkkh",
-                "queryModel.sortOrder": "asc",
+                "queryModel.sortOrder": "desc", // 默认asc   desc 按课程号降序，使最新学期的考试排在前面 
                 "time": 0
             }
         );
@@ -64,6 +64,13 @@ impl Session {
             let Some(items) = json["items"].as_array() else {
                 continue;
             };
+            // 打印调试信息
+            println!("--- 成功从 {} 获取的原始 JSON 响应 ---", url);
+            match serde_json::to_string_pretty(&json) {
+                Ok(pretty_json) => println!("{}", pretty_json),
+                Err(_) => println!("Error: Failed to format JSON, printing raw Value: {:?}", json),
+            }
+            println!("----------------------------------------------");
 
             // let res = match self
             //     .client
@@ -131,6 +138,49 @@ impl Session {
                     });
                 })
                 .collect();
+
+            let qztests: Vec<Test> = items
+                .iter()
+                .filter_map(|item| {
+                    let semester = &item["xkkh"].as_str().unwrap()[1..12];
+                    if !active_semesters.contains(&semester.to_string()) {
+                        return None;
+                    }
+                    let time = &item["qzkssj"];
+                    if time.is_null() {
+                        return None;
+                    }
+                    let time = time.as_str().unwrap().to_string();
+                    let room = &item["qzjsmc"];
+                    let room = if room.is_null() {
+                        String::new()
+                    } else {
+                        room.as_str().unwrap().to_string()
+                    };
+                    let name = item["kcmc"].as_str().unwrap().to_string();
+                    let sit = &item["qzzwxh"];
+                    let sit = if sit.is_null() {
+                        String::new()
+                    } else {
+                        sit.as_str().unwrap().to_string()
+                    };
+                    return Some(Test {
+                        name,
+                        room,
+                        sit,
+                        time,
+                    });
+                })
+                .collect();
+
+            let mut tests = tests;
+            for qztest in qztests {
+                if !tests.iter().any(|t| t.name == qztest.name && t.time == qztest.time) {
+                    tests.push(qztest);
+                }
+            }
+
+            tests.sort_by(|a, b| a.time.cmp(&b.time));
             return Ok(tests);
         }
         Err(anyhow!("获取考试信息失败"))
