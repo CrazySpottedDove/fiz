@@ -64,13 +64,6 @@ impl Session {
             let Some(items) = json["items"].as_array() else {
                 continue;
             };
-            // 打印调试信息
-            println!("--- 成功从 {} 获取的原始 JSON 响应 ---", url);
-            match serde_json::to_string_pretty(&json) {
-                Ok(pretty_json) => println!("{}", pretty_json),
-                Err(_) => println!("Error: Failed to format JSON, printing raw Value: {:?}", json),
-            }
-            println!("----------------------------------------------");
 
             // let res = match self
             //     .client
