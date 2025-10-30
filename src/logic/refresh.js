@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { useMaterialStore, useCourseStore, useGradeStore, useHomeworkStore, useTestStore} from '../stores';
+import { useMaterialStore, useCourseStore, useGradeStore, useHomeworkStore, useTestStore, useQuizStore } from '../stores';
 import Swal from 'sweetalert2';
 function showError(title, error) {
     Swal.fire({
@@ -15,6 +15,7 @@ export function refresh() {
     const materialStore = useMaterialStore();
     const homeworkStore = useHomeworkStore();
     const testStore = useTestStore();
+    const quizStore = useQuizStore();
     const etaPromise = invoke("login_eta");
     etaPromise.then(() => {
         const gradesPromise = invoke("get_grades_and_analysis");
@@ -46,6 +47,7 @@ export function refresh() {
             courseStore.setCourses(courses);
             const materialsPromise = invoke("get_materials");
             const homeworksPromise = invoke("get_homeworks");
+            const quizesPromise = invoke("get_quizes");
             materialsPromise.then((materials) => {
                 materialStore.setMaterials(materials);
                 const watchesPromise = invoke("get_watches");
@@ -60,6 +62,11 @@ export function refresh() {
             }).catch((error) => {
                 showError('获取作业信息失败', error);
             });
+            quizesPromise.then((quizes) => {
+                quizStore.setQuizes(quizes);
+            }).catch((error) => {
+                showError('获取测试信息失败', error);
+            })
         }).catch((error) => {
             showError('获取课程信息失败', error);
         });

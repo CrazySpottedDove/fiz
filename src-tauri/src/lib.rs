@@ -8,6 +8,7 @@ mod session;
 mod test;
 mod utils;
 mod watch;
+mod quiz;
 // mod courseware_quiz;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -48,6 +49,8 @@ pub fn run() {
             homework::submit_homework,
             homework::submit_file,
             homework::query_file,
+            quiz::init_quizes,
+            quiz::get_quizes,
             test::get_tests,
             courseware::get_semesters,
             watch::get_watches,

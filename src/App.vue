@@ -1,6 +1,6 @@
 <script setup>
 import { listen } from '@tauri-apps/api/event';
-import { useMaterialStore, useCourseStore, useGradeStore, useConfigStore, useHomeworkStore, useStateStore } from './stores';
+import { useMaterialStore, useCourseStore, useGradeStore, useConfigStore, useHomeworkStore, useStateStore, useQuizStore } from './stores';
 import { ref, watch } from 'vue';
 import { refresh } from './logic/refresh.js';
 const courseStore = useCourseStore();
@@ -9,6 +9,7 @@ const materialStore = useMaterialStore();
 const configStore = useConfigStore();
 const homeworkStore = useHomeworkStore();
 const stateStore = useStateStore();
+const quizStore = useQuizStore();
 const timerId = ref(null);
 listen("courses-inited", (event) => {
     courseStore.setCourses(event.payload);
@@ -25,6 +26,9 @@ listen("config-inited", (event) => {
 });
 listen("homeworks-inited", (event) => {
     homeworkStore.setHomeworks(event.payload);
+});
+listen("quizes-inited", (event) => {
+    quizStore.setQuizes(event.payload);
 });
 listen("watches-inited", (event) => {
     courseStore.setWatches(event.payload);
