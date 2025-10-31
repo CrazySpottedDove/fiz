@@ -8,7 +8,10 @@
             <p>{{ quiz.ddl }}</p>
         </div>
         <div class="flex justify-between items-center w-full">
-            <div class="description mt-2">请及时在学在浙大进行测试。</div>
+            <div class="description mt-2">请及时完成测试。</div>
+            <div class="active:text-blue-600 dark:text-cyan-600 cursor-pointer hover:text-cyan-400 min-w-9"
+                @click="submit(homework.id)"><a :href="quiz.url" target="_blank"
+                    >点击前往学在浙大进行测试</a></div>
         </div>
         <br>
     </Card>

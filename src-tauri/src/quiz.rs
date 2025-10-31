@@ -25,16 +25,20 @@ pub struct Quiz {
     pub ddl: String,
     // 属于哪门课程
     pub course: String,
+    // 测试 url
+    pub url: String,
 }
 
+// https://courses.zju.edu.cn/course/88438/learning-activity#/exam/83510
 impl Quiz {
-    pub fn new(title: String, id: u64, submitted: bool, ddl: String, course: String) -> Self {
+    pub fn new(title: String, id: u64, submitted: bool, ddl: String, course: String, url: String) -> Self {
         Self {
             title,
             id,
             submitted,
             ddl,
             course,
+            url
         }
     }
 }
@@ -72,7 +76,7 @@ impl Session {
                         return None;
                     }
                     let submission_count = quiz["submission_count"].as_u64()?;
-                    let id = quiz["id"].as_u64()?;
+                    let quiz_id = quiz["id"].as_u64()?;
                     let title = quiz["title"].as_str()?.to_string();
                     let course = course.clone();
                     let ddl_str = quiz["end_time"].as_str()?;
@@ -81,7 +85,8 @@ impl Session {
                         .with_timezone(&Local)
                         .format("%Y-%m-%d %H:%M")
                         .to_string();
-                    Some(Quiz::new(title, id, submission_count > 0, ddl, course))
+                    let url = format!("https://courses.zju.edu.cn/course/{id}/learning-activity#/exam/{quiz_id}");
+                    Some(Quiz::new(title, quiz_id, submission_count > 0, ddl, course, url))
                 })
                 .collect::<Vec<Quiz>>();
             return Ok(quizes);
