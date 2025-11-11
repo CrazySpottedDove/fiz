@@ -3,6 +3,7 @@ use crate::courseware::COURSES;
 use crate::grade::{ANALYSIS, GRADES};
 use crate::homework::HOMEWORKS;
 use crate::material::{MATERIALS, RECORD};
+use crate::quiz::QUIZES;
 use crate::session::SESSION;
 use crate::watch::WATCHES;
 use lazy_static::lazy_static;
@@ -113,6 +114,7 @@ pub async fn store() -> Result<(), String> {
     RECORD.lock().await.store()?;
     HOMEWORKS.lock().await.store()?;
     WATCHES.lock().await.store()?;
+    QUIZES.lock().await.store()?;
     Ok(())
 }
 
